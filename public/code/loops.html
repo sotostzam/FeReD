@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8">
+        <title>FeReD - Centralized Data</title>
+        <link rel="stylesheet" type="text/css" href="code.css"/>
+        <link href='https://fonts.googleapis.com/css?family=Alata' rel='stylesheet'>
+    </head>
+    <body>
+        <div class="container">
+            <div class="container-title">
+                <h2>Code comparison: Loops</h2>
+            </div>
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating lang">
+                        <h3>Python Syntax</h3>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating lang">
+                        <h3>SQLite Syntax</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+<pre>for i in range(episodes):
+    for j in range(tries):
+        # Algorithm</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+<pre>with recursive
+    episodes(e_step) as (
+      values(0)
+      union all
+      select e_step+1 from episodes
+      where e_step < (select episodes from input)-1
+    ),
+    tries(t_step) as (
+      values(0)
+      union all
+      select t_step+1 from tries
+      where t_step < (select tries from input)-1
+    )
+insert into counter select episodes.e_step, tries.t_step from episodes, tries;
+
+create trigger if not exists compute_step after insert on counter
+  -- Algorithm
+end;</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

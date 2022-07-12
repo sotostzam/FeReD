@@ -1,0 +1,20 @@
+{
+  "name": "fered",
+  "version": "1.0.0",
+  "description": "Federated Reinforcement Learning in the DBMS.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "reinforcement-learning",
+    "machine-learning",
+    "q-learning"
+  ],
+  "author": "Sotirios Tzamaras",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.1",
+    "ws": "^8.8.0"
+  }
+}

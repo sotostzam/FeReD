@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8">
+        <title>FeReD - Centralized Data</title>
+        <link rel="stylesheet" type="text/css" href="code.css"/>
+        <link href='https://fonts.googleapis.com/css?family=Alata' rel='stylesheet'>
+    </head>
+    <body>
+        <div class="container">
+            <div class="container-title">
+                <h2>Code comparison: Q-learning</h2>
+            </div>
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating lang">
+                        <h3>Python Syntax</h3>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating lang">
+                        <h3>SQLite Syntax</h3>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+<pre>current_state = tuple(np.copy(agent_pos))
+
+uniform = random.uniform(0, 1)
+
+# If random number is less than ε then explore else exploit (make agent greedy)
+if uniform < epsilon:
+    action = random.randint(0, 3)
+    if generate_rnd_values:
+        rnd_values.append([i, j, uniform, action])
+else:
+    action = np.argmax(q_table[agent_pos[0]][agent_pos[1]])</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+<pre>create trigger if not exists compute_step after insert on counter
+when ((select max(t_step) from counter where e_step=(select max(e_step) from counter))>0 and (select found from goal_found)=0) or
+        ((select e_step from counter)=0 and (select t_step from counter)=0)
+begin 
+    insert into iterations values ((select max(e_step) from counter),
+                                    (select max(t_step) from counter where e_step=(select max(e_step) from counter)));
+    delete from counter;
+end;
+
+-- Trigger resetting the state of the maze and then perform step
+create trigger if not exists state_reset after insert on counter
+when (select max(t_step) from counter where e_step=(select max(e_step) from counter))=0 and (select max(e_step) from counter)>0
+begin
+    
+    -- Compare with best reward
+    update best_reward set
+    reward=case 
+        when (select e_step from counter)=0 then (select reward from best_reward)
+        when (select reward from accumulated_reward)>(select reward from best_reward) then (select reward from accumulated_reward)
+        else (select reward from best_reward) end;
+
+    -- Reset accumulated reward on new episode
+    update accumulated_reward set
+    reward=0;
+    
+    -- Decrease epsilon value on new episode until a threshold
+    update input
+    set epsilon = case
+    when epsilon > 0.01 and (select e_step from counter)>0 then epsilon*97/100
+    else epsilon*1
+    end;</pre>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+<pre>new_state, reward = make_move(action)
+max_reward += reward
+max_future_q = np.max(new_state)
+current_q = q_table[current_state[0]][current_state[1]][action]
+new_q = current_q + learning_rate * (reward + discount * max_future_q - current_q)
+q_table[current_state[0]][current_state[1]][action] = new_q</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+<pre>-- Reset agent's position on new episode
+update agent set
+    x=init_x,
+    y=init_y;
+
+-- Reinitialize flag 
+update goal_found set
+    found = 0;
+
+insert into iterations values ((select max(e_step) from counter),
+                                (select max(t_step) from counter where e_step=(select max(e_step) from counter)));
+delete from counter;
+
+end;
+
+-- TODO BE careful about this one. TESTING NEEDED
+create trigger if not exists safe_delete after insert on counter
+when (select max(t_step) from counter where e_step=(select max(e_step) from counter))>0 and (select found from goal_found)=1
+begin
+delete from counter;
+end;
+
+-- Trigger running a q-learning step
+create trigger if not exists q_learning after insert on iterations
+begin
+-- Find next action and check if valid
+update selected_action
+set action = (select a from get_action);
+update selected_action
+set valid = (select a from valid_action);
+
+-- Create new state
+update new_state set
+    i=(select
+        case
+        when (select action from selected_action)=2 and (select valid from selected_action)=1 then (select x from agent)-1
+        when (select action from selected_action)=3 and (select valid from selected_action)=1 then (select x from agent)+1
+        else (select x from agent) end),
+    j=(select
+        case
+        when (select action from selected_action)=0 and (select valid from selected_action)=1 then (select y from agent)-1
+        when (select action from selected_action)=1 and (select valid from selected_action)=1 then (select y from agent)+1
+        else (select y from agent) end),
+    reward=null;</pre>
+                    </div>
+                </div>
+            </div>
+
+            
+        </div>
+    </body>
+</html>

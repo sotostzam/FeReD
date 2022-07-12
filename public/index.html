@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8">
+        <title>FeReD</title>
+        <link rel="stylesheet" type="text/css" href="style.css"/>
+        <link href='https://fonts.googleapis.com/css?family=Alata' rel='stylesheet'>
+    </head>
+    <body>
+        <div class="container">
+            <div class="section_A">
+                <div class="container_name">
+                    <h1>FeReD</h1>
+                    <h3>Federated Reinforcement Learning in the DBMS</h3>
+                </div>
+                <div class="container_parameters">
+                    <div class="floating fl-dark" id="fl-parameters">
+                        <div class="parameters">
+                            <h3>Federated Parameters</h3>
+                            <div class="parameters-row">
+                                <label for="learning_problem_size">Learning problem size:</label>
+                                <select class="parameters-menu" id="learning_problem_size">
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                    <option value="15" selected="selected">15</option>
+                                </select>
+                            </div>
+                            <div class="parameters-row">
+                                <label for="data_partitioning">Partitioning of data:</label>
+                                <select class="parameters-menu" id="data_partitioning">
+                                    <option value="horizontal" selected="selected">horizontal</option>
+                                    <option value="vertical">vertical</option>
+                                </select>
+                            </div>
+                            <div class="parameters-row">
+                                <label for="f_rounds">Federated rounds:</label>
+                                <select class="parameters-menu" id="f_rounds">
+                                    <option value="50">50</option>
+                                    <option value="100" selected="selected">100</option>
+                                    <option value="150">150</option>
+                                    <option value="200">200</option>
+                                </select>
+                            </div>
+                            <div class="parameters-row">
+                                <label for="clients">Clients:</label>
+                                <select class="parameters-menu" id="clients">
+                                    <option value="5" selected="selected">5</option>
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                </select>
+                            </div>
+                            <div class="parameters-row">
+                                <label for="partition_size">Partition size:</label>
+                                <select class="parameters-menu" id="partition_size" disabled>
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                </select>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="parameters">
+                            <h3>Learning Parameters</h3>
+                            <div class="parameters-row">
+                                <label for="episodes">Local episodes:</label>
+                                <select class="parameters-menu" id="episodes">
+                                    <option value="1">1</option>
+                                    <option value="10">10</option>
+                                    <option value="20" selected="selected">20</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </div>
+                            <div class="parameters-row">
+                                <label for="tries">Episode length:</label>
+                                <select class="parameters-menu" id="tries">
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="150">150</option>
+                                    <option value="200" selected="selected">200</option>
+                                </select>
+                            </div>
+                            <div class="parameters-row">
+                                <label for="learning_rate">Learning rate:</label>
+                                <select class="parameters-menu" id="learning_rate">
+                                    <option value="0.01">0.01</option>
+                                    <option value="0.05"selected="selected">0.05</option>
+                                </select>
+                            </div>
+                            <div class="parameters-row">
+                                <label for="egreedy">ε-greedy per round:</label>
+                                <select class="parameters-menu" id="egreedy">
+                                    <option value="1" selected="selected">on</option>
+                                    <option value="0">off</option>
+                                </select>
+                            </div>
+                            <div class="parameters-row">
+                                <label for="random_pos">Randomized position:</label>
+                                <select class="parameters-menu" id="random_pos">
+                                    <option value="0" selected="selected">off</option>
+                                    <option value="1">per round</option>
+                                    <option value="2">per client</option>
+                                </select>
+                            </div>
+                            <br>
+                            <div class="parameters-btn">
+                                <button id="apply-btn" type="button" name="apply" value="apply">Apply Parameters</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="floating fl-dark" id="controls">
+                        <h3>Controls</h3>
+                        <div class="container-control">
+                            <div class="parameters-btn control-btn-area">
+                                <button id="start-btn" class="control-btn" type="button" disabled>Start</button>
+                                <button id="stop-btn" class="control-btn" type="button" disabled>Stop</button>
+                                <button id="reset-btn" class="control-btn" type="button" disabled>Reset</button>
+                            </div>
+                            <div class="parameters-btn control-btn-area">
+                                <button id="prev-btn" class="control-btn" type="button" disabled>Back</button>
+                                <button id="next-btn" class="control-btn" type="button" disabled>Next</button>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="current_status">
+                            <div>
+                                <h4>Current Round: <span id="current_round_span">0</span></h4>
+                            </div>
+                            <div>
+                                <h4>Computed: <span id="computed_rounds_span">0</span></h4>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="container-control-centralized">
+                            <div class="parameters-btn">
+                                <button class="control-btn" type="button" onClick="window.open('centralized.html','Hello','resizable,height=800,width=1000'); return false;">Show centralized figures</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="floating fl-dark" id="links">
+                        <h3>Acknowledgments</h3>
+                        <div class="uni">
+                            <div class="uni-item">
+                                <a href="https://www.univ-grenoble-alpes.fr/" target="_blank">
+                                    <img src="assets/uga.png" alt="Error Loading Image">
+                                </a>
+                            </div>
+                            <div class="uni-item">
+                                <a href="https://www.liglab.fr/en" target="_blank">
+                                    <img src="assets/lig.png" alt="Error Loading Image">
+                                </a>
+                            </div>
+                            <div class="uni-item">
+                                <a href="https://miai.univ-grenoble-alpes.fr/" target="_blank">
+                                    <img src="assets/miai.png" alt="Error Loading Image">
+                                </a>
+                            </div>
+                            <div class="uni-item">
+                                <a href="https://www.cnrs.fr/" target="_blank">
+                                    <img src="assets/cnrs.png" alt="Error Loading Image">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section_B">
+                <div class="container-selected-dataset">
+                    <div class="floating fl-light" id="selected-dataset">
+                        <div class="container-fl-title">
+                            <div class="fl-title">
+                                <h2>Learning Problem</h2>
+                            </div>
+                        </div>
+                        <div class="fl-info">
+                            <div class="img-col">
+                                <img src="assets/startup/maze_layout.png" alt="Error Loading Image" id="maze_layout">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="container-architecture">
+                    <div class="floating fl-light" id="section_architecture">
+                        <div class="container-fl-title">
+                            <div class="fl-title">
+                                <h2>Architecture</h2>
+                            </div>
+                        </div>
+                        <div class="fl-info">
+                            <div class="img-col">
+                                <img src="assets/horizontal_partition.png" alt="Error Loading Image">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="container-pseudocode">
+                    <div class="floating fl-light" id="section_pseudocode">
+                        <div class="container-fl-title">
+                            <div class="fl-title">
+                                <h2>Pseudocode</h2>
+                            </div>
+                        </div>
+                        <div class="fl-info">
+                            <div class="pseudocode-code">
+                                <div class="code-coordinator">
+                                    <div class="code-part code-title">Coordinator:</div>
+                                    <div class="code-part">Initialize Q-table</div>
+                                    <div class="code-part"><b>for</b> each round <span id="pseudocode-round">t = 1 until T</span> <b>do</b><br>  <b>for</b> each client <span id="pseudocode-client">i = 1 until I</span> <b>do in parallel</b></div>
+                                    <div class="code-part code-clickable">    ClientUpdate()</div>
+                                    <div class="code-part">  <b>end for</b></div>
+                                    <div class="code-part code-clickable">  Perform aggregation of results</div>
+                                    <div class="code-part">  reduce ε-greedy</div>
+                                    <div class="code-part"><b>end for</b></div>
+                                </div>
+                                <div class="code-client">
+                                    <div class="code-part code-title">ClientUpdate:</div>
+                                    <div class="code-part code-clickable" onClick="window.open('code/loops.html','Loops','resizable,height=800,width=1000'); return false;"><b>for</b> each episode <span id="pseudocode-episode">e = 1 until E</span> <b>do</b><br>  <b>for</b> local try <span id="pseudocode-tries">r = 1 until R</span><b> do</b></div>
+                                    <div class="code-part code-clickable" onClick="window.open('code/qlearning.html','Q-learning','resizable,height=800,width=1000'); return false;">    Run Q-learning algorithm</div>
+                                    <div class="code-part">  <b>end for</b></div>
+                                    <div class="code-part"><b>end for</b></div>
+                                    <div class="code-part"><b>return</b> results to coordinator</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section_C">
+                <div class="container-local-models">
+                    <div class="container-local-python">
+                        <div class="floating fl-light trained-model">
+                            <div class="trained-policy">
+                                <div class="container-fl-title">
+                                    <div class="fl-title">
+                                        <h2>Python</h2>
+                                    </div>
+                                    <div class="fl-subtitle">
+                                        <h3>Trained Policy</h3>
+                                    </div>
+                                </div>
+                                <div class="fl-info">
+                                    <div class="img-col">
+                                        <img src="assets/startup/policy_heatmap.png" alt="Error Loading Image" id="heatmap_python">
+                                    </div>
+                                    <div class="img-col">
+                                        <img src="assets/heatmap_legend.png" alt="Error Loading Image">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="clients-policy">
+                                <div class="container-fl-title">
+                                    <div class="fl-title">
+                                        <h2>Federated Training</h2>
+                                    </div>
+                                </div>
+                                <div class="fl-info">
+                                    <div class="container-img">
+                                        <div class="img-col">
+                                            <img src="assets/startup/heatmap.png" alt="Error Loading Image" id="python_client1_img">
+                                        </div>
+                                        <div>
+                                            <label for="python_client1">Client:</label>
+                                            <select id="python_client1">
+                                                <option value="1" selected="selected">#1</option>
+                                                <option value="2">#2</option>
+                                                <option value="3">#3</option>
+                                                <option value="4">#4</option>
+                                                <option value="5">#5</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="container-img">
+                                        <div class="img-col">
+                                            <img src="assets/startup/heatmap.png" alt="Error Loading Image" id="python_client2_img">
+                                        </div>
+                                        <div>
+                                            <label for="python_client2">Client:</label>
+                                            <select id="python_client2">
+                                                <option value="1">#1</option>
+                                                <option value="2" selected="selected">#2</option>
+                                                <option value="3">#3</option>
+                                                <option value="4">#4</option>
+                                                <option value="5">#5</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="container-img">
+                                        <div class="img-col">
+                                            <img src="assets/startup/heatmap.png" alt="Error Loading Image" id="python_client3_img">
+                                        </div>
+                                        <div>
+                                            <label for="python_client3">Client:</label>
+                                            <select id="python_client3">
+                                                <option value="1">#1</option>
+                                                <option value="2">#2</option>
+                                                <option value="3" selected="selected">#3</option>
+                                                <option value="4">#4</option>
+                                                <option value="5">#5</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container-local-sql">
+                        <div class="floating fl-light trained-model">
+                            <div class="trained-policy">
+                                <div class="container-fl-title">
+                                    <div class="fl-title">
+                                        <h2>SQLite</h2>
+                                    </div>
+                                    <div class="fl-subtitle">
+                                        <h3>Trained Policy</h3>
+                                    </div>
+                                </div>
+                                <div class="fl-info">
+                                    <div class="img-col">
+                                        <img src="assets/startup/policy_heatmap.png" alt="Error Loading Image" id="heatmap_sql">
+                                    </div>
+                                    <div class="img-col">
+                                        <img src="assets/heatmap_legend.png" alt="Error Loading Image">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="clients-policy">
+                                <div class="container-fl-title">
+                                    <div class="fl-title">
+                                        <h2>Federated Training</h2>
+                                    </div>
+                                </div>
+                                <div class="fl-info">
+                                    <div class="container-img">
+                                        <div class="img-col">
+                                            <img src="assets/startup/heatmap.png" alt="Error Loading Image" id="sql_client1_img">
+                                        </div>
+                                        <div>
+                                            <label for="sql_client1">Client:</label>
+                                            <select id="sql_client1">
+                                                <option value="1" selected="selected">#1</option>
+                                                <option value="2">#2</option>
+                                                <option value="3">#3</option>
+                                                <option value="4">#4</option>
+                                                <option value="5">#5</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="container-img">
+                                        <div class="img-col">
+                                            <img src="assets/startup/heatmap.png" alt="Error Loading Image" id="sql_client2_img">
+                                        </div>
+                                        <div>
+                                            <label for="sql_client2">Client:</label>
+                                            <select id="sql_client2">
+                                                <option value="1">#1</option>
+                                                <option value="2" selected="selected">#2</option>
+                                                <option value="3">#3</option>
+                                                <option value="4">#4</option>
+                                                <option value="5">#5</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="container-img">
+                                        <div class="img-col">
+                                            <img src="assets/startup/heatmap.png" alt="Error Loading Image" id="sql_client3_img">
+                                        </div>
+                                        <div>
+                                            <label for="sql_client3">Client:</label>
+                                            <select id="sql_client3">
+                                                <option value="1">#1</option>
+                                                <option value="2">#2</option>
+                                                <option value="3" selected="selected">#3</option>
+                                                <option value="4">#4</option>
+                                                <option value="5">#5</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container-stats">
+                    <div class="floating fl-light" id="section_E">
+                        <div class="container-fl-title">
+                            <div class="fl-title">
+                                <h2>Statistics per Round</h2>
+                            </div>
+                        </div>
+                        <div class="fl-info">
+                            <div class="img-col">
+                                <img src="assets/startup/sync_times_python.png" alt="Error Loading Image" id="sync_times_python">
+                            </div>
+                            <div class="img-col">
+                                <img src="assets/startup/sync_times_sql.png" alt="Error Loading Image" id="sync_times_sql">
+                            </div>
+                            <div class="img-col">
+                                <img src="assets/startup/convergence.png" alt="Error Loading Image" id="convergence">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="./index.js"></script>
+    </body>
+</html>

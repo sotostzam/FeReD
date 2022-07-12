@@ -1,0 +1,6 @@
+__pycache__/
+sqlite
+results.txt
+plots/
+results/
+data/
