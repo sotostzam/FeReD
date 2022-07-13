@@ -110,6 +110,7 @@ img {
     display: flex;
     justify-content: center;
     width: 100%;
+	max-width: 1300px;
     height: auto;
 	font-family: system-ui;
     font-size: 14px;
@@ -125,4 +126,5 @@ img {
 
 .container-code-row pre {
     word-wrap: break-word;
+	white-space: pre-wrap;
 }

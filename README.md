@@ -32,4 +32,4 @@ The most notable files are the following:
 
 ![sotiris](/public/assets/sotiris.png) | ![radu](/public/assets/radu.png) | ![marta](/public/assets/marta.jpg) | ![sihem](/public/assets/sihem.jpg)
 ------------ | ------------- | ------------- | -------------
-[Sotirios Tzamaras](https://scholar.google.fr/citations?hl=fr&user=sbOKfl8AAAAJ) | [Radu Ciucanu](https://lig-membres.imag.fr/ciucanu/) | [Marta Soare](https://lig-membres.imag.fr/soare/) | [Sihem Amer-Yahia](https://lig-membres.imag.fr/amery/)
+[Sotirios Tzamaras](https://www.linkedin.com/in/sotiris-tzamaras/) | [Radu Ciucanu](https://lig-membres.imag.fr/ciucanu/) | [Marta Soare](https://lig-membres.imag.fr/soare/) | [Sihem Amer-Yahia](https://lig-membres.imag.fr/amery/)
