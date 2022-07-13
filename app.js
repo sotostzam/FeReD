@@ -9,8 +9,14 @@ wss.on('connection', function connection(ws) {
 
     var args = null;
     const { spawn } = require('node:child_process');
-    var apply_worker = null;
-    var run_worker = null;
+    const { fork }  = require('node:child_process');
+    var apply_worker   = null;
+    var run_worker     = null;
+    
+    var counter_worker = fork("worker_counter.js"); 
+    counter_worker.on('message', message => {
+        ws.send(JSON.stringify({status: "show_next_round"}));
+    });
     
     function apply_model(args) {
         apply_worker = spawn(`bash start-api.sh "apply-model" ${args}`, [], { shell: true,  detached: true });
@@ -38,6 +44,7 @@ wss.on('connection', function connection(ws) {
         run_worker.stdout.on('data', (data) => {
             let completed_round = parseInt(data);
             ws.send(JSON.stringify({status: "completed_round", round: completed_round}));
+            counter_worker.send(JSON.stringify({command: "computed_rounds", computed_rounds: completed_round}));
         });
         run_worker.stderr.on('data', (data) => {
             console.log(`stderr: ${data}`);
@@ -51,7 +58,6 @@ wss.on('connection', function connection(ws) {
     };
 
     ws.on('message', function incoming(message) {
-        console.log('received: %s', JSON.parse(message));
         msg = JSON.parse(message);
         switch (msg.command) {
             case 'apply':
@@ -65,6 +71,11 @@ wss.on('connection', function connection(ws) {
                 
                 apply_model(args);
                 break;
+            case 'start':
+                counter_worker.send(JSON.stringify({command: "start", current_round: msg.current_round, total_rounds: msg.total_rounds}));
+                break;
+            case 'stop':
+                counter_worker.send(JSON.stringify({command: "stop"}));
         };
     })
 })

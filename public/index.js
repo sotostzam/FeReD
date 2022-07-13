@@ -4,6 +4,7 @@ var current_round   = 0;
 var computed_rounds = 0;
 const plot_path     = "./data/plots";
 const default_path  = "./assets/startup";
+var start_show_once = false
 
 socket.addEventListener('open', function (event) {
     
@@ -11,7 +12,6 @@ socket.addEventListener('open', function (event) {
 
 /* Messages from the WebSocket server */
 socket.addEventListener('message', function (event) {
-    console.log('Message from server ', event.data);
     msg = JSON.parse(event.data);
     switch (msg.status) {
         case 'ready':
@@ -31,12 +31,17 @@ socket.addEventListener('message', function (event) {
         case 'completed_round':
             document.getElementById("computed_rounds_span").innerHTML = msg.round;
             computed_rounds = parseInt(msg.round);
-            if (computed_rounds > 0) {
+            if (computed_rounds > 0 && !start_show_once) {
                 document.getElementById("start-btn").disabled = false;
+                start_show_once = true;
             };
             if (current_round < computed_rounds) {
                 document.getElementById("next-btn").disabled = false;
             };
+            break;
+        case 'show_next_round':
+            current_round++;
+            updateFigures();
             break;
     }
 });
@@ -119,11 +124,16 @@ window.onload = function () {
     };
 
     document.getElementById("start-btn").onclick = function () {
-        socket.send(JSON.stringify({command: "start"}));
+        max_rounds = parseInt(document.getElementById("f_rounds").value);
+        socket.send(JSON.stringify({command: "start", current_round: current_round, total_rounds: max_rounds}));
+        document.getElementById("start-btn").disabled = true;
+        document.getElementById("stop-btn").disabled = false;
     };
 
     document.getElementById("stop-btn").onclick = function () {
         socket.send(JSON.stringify({command: "stop"}));
+        document.getElementById("start-btn").disabled = false;
+        document.getElementById("stop-btn").disabled = true;
     };
 
     document.getElementById("reset-btn").onclick = function () {
@@ -153,6 +163,7 @@ function checkButtons() {
         document.getElementById("prev-btn").disabled  = true;
         document.getElementById("next-btn").disabled  = false;
     } else {
+        console.log(document.getElementById("prev-btn").disabled);
         if (document.getElementById("next-btn").disabled)  { document.getElementById("next-btn").disabled  = false; };
         if (document.getElementById("prev-btn").disabled)  { document.getElementById("prev-btn").disabled  = false; };
         if (document.getElementById("reset-btn").disabled) { document.getElementById("reset-btn").disabled  = false; };
