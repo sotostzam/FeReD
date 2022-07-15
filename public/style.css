@@ -223,16 +223,23 @@ img {
 	color: #fff;
 	padding: 4px;
 	border-radius: 9px;
+	border: solid 1px grey;
 	text-align: right;
+	width: 92px;
+}
+
+.parameters-row input {
+	background: #181b20;
+	color: #fff;
+	padding: 5px;
+	border-radius: 9px;
+	border: solid 1px grey;
+	text-align: right;
+	width: 80px;
 }
 
 .parameters-row label {
 	font-size: 15px;
-}
-
-.parameters-menu {
-	width: 90px;
-	min-width: 90px;
 }
 
 .parameters-btn {

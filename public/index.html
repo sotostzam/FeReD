@@ -20,7 +20,7 @@
                             <h3>Federated Parameters</h3>
                             <div class="parameters-row">
                                 <label for="learning_problem_size">Learning problem size:</label>
-                                <select class="parameters-menu" id="learning_problem_size">
+                                <select id="learning_problem_size">
                                     <option value="5">5</option>
                                     <option value="10">10</option>
                                     <option value="15" selected="selected">15</option>
@@ -28,34 +28,22 @@
                             </div>
                             <div class="parameters-row">
                                 <label for="data_partitioning">Partitioning of data:</label>
-                                <select class="parameters-menu" id="data_partitioning">
+                                <select id="data_partitioning">
                                     <option value="horizontal" selected="selected">horizontal</option>
                                     <option value="vertical">vertical</option>
                                 </select>
                             </div>
                             <div class="parameters-row">
                                 <label for="f_rounds">Federated rounds:</label>
-                                <select class="parameters-menu" id="f_rounds">
-                                    <option value="50">50</option>
-                                    <option value="100" selected="selected">100</option>
-                                    <option value="150">150</option>
-                                    <option value="200">200</option>
-                                </select>
+                                <input type="text" id="f_rounds" name="name" value="100">
                             </div>
                             <div class="parameters-row">
                                 <label for="clients">Clients:</label>
-                                <select class="parameters-menu" id="clients">
-                                    <option value="5" selected="selected">5</option>
-                                    <option value="10">10</option>
-                                    <option value="25">25</option>
-                                </select>
+                                <input type="text" id="clients" name="name" value="5">
                             </div>
                             <div class="parameters-row">
                                 <label for="partition_size">Partition size:</label>
-                                <select class="parameters-menu" id="partition_size" disabled>
-                                    <option value="5">5</option>
-                                    <option value="10">10</option>
-                                </select>
+                                <input type="text" id="partition_size" name="name" value="5" disabled>
                             </div>
                         </div>
                         <br>
@@ -63,39 +51,26 @@
                             <h3>Learning Parameters</h3>
                             <div class="parameters-row">
                                 <label for="episodes">Local episodes:</label>
-                                <select class="parameters-menu" id="episodes">
-                                    <option value="1">1</option>
-                                    <option value="10">10</option>
-                                    <option value="20" selected="selected">20</option>
-                                    <option value="50">50</option>
-                                </select>
+                                <input type="text" id="episodes" name="name" value="20">
                             </div>
                             <div class="parameters-row">
                                 <label for="tries">Episode length:</label>
-                                <select class="parameters-menu" id="tries">
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                    <option value="150">150</option>
-                                    <option value="200" selected="selected">200</option>
-                                </select>
+                                <input type="text" id="tries" name="name" value="200">
                             </div>
                             <div class="parameters-row">
                                 <label for="learning_rate">Learning rate:</label>
-                                <select class="parameters-menu" id="learning_rate">
-                                    <option value="0.01">0.01</option>
-                                    <option value="0.05"selected="selected">0.05</option>
-                                </select>
+                                <input type="text" id="learning_rate" name="name" value="0.05">
                             </div>
                             <div class="parameters-row">
                                 <label for="egreedy">ε-greedy per round:</label>
-                                <select class="parameters-menu" id="egreedy">
+                                <select id="egreedy">
                                     <option value="1" selected="selected">on</option>
                                     <option value="0">off</option>
                                 </select>
                             </div>
                             <div class="parameters-row">
                                 <label for="random_pos">Randomized position:</label>
-                                <select class="parameters-menu" id="random_pos">
+                                <select id="random_pos">
                                     <option value="0" selected="selected">off</option>
                                     <option value="1">per round</option>
                                     <option value="2">per client</option>
