@@ -6,8 +6,11 @@
         <title>FeReD - Centralized Data</title>
         <link rel="stylesheet" type="text/css" href="code.css"/>
         <link href='https://fonts.googleapis.com/css?family=Alata' rel='stylesheet'>
+        <link rel="stylesheet" type="text/css" href="google-code-prettify/prettify.css">
+        <script type="text/javascript" src="google-code-prettify/prettify.js"></script>
+        <script type="text/javascript" src="google-code-prettify/lang-sql.js"></script>
     </head>
-    <body>
+    <body onload="PR.prettyPrint()">
         <div class="container">
             <div class="container-title">
                 <h2>Code comparison: Q-learning</h2>
@@ -25,122 +28,431 @@
                 </div>
             </div>
 
-
             <div class="container-code-row">
                 <div class="container-python">
-                    <div class="floating">
-<pre>current_state = tuple(np.copy(agent_pos))
-
-uniform = random.uniform(0, 1)
-
-# If random number is less than ε then explore else exploit (make agent greedy)
-if uniform < epsilon:
-    action = random.randint(0, 3)
-    if generate_rnd_values:
-        rnd_values.append([i, j, uniform, action])
-else:
-    action = np.argmax(q_table[agent_pos[0]][agent_pos[1]])</pre>
+                    <div class="floating" >
+                        <pre class="prettyprint lang-py"># Initialization of tables and positions</pre>
+                        <pre class="prettyprint lang-py">learning_rate, episodes, tries, discount, penalty, epsilon = read_inputs("data/inputs.csv")</pre>
+                        <pre class="prettyprint lang-py">initial_pos = read_from_csv("data/agent.csv")</pre>
+                        <pre class="prettyprint lang-py">goal_pos = read_from_csv("data/goal.csv")</pre>
+                        <pre class="prettyprint lang-py">rewards = matrix_from_csv("data/rewards.csv")</pre>
+                        <pre class="prettyprint lang-py">q_table = matrix_from_csv("results/qtable-python.csv")</pre>
+                        <pre class="prettyprint lang-py">agent_pos = np.copy(initial_pos)</pre>
+                        <pre class="prettyprint lang-py">best_reward = 0</pre>
                     </div>
                 </div>
                 <div class="container-sql">
                     <div class="floating">
-<pre>create trigger if not exists compute_step after insert on counter
-when ((select max(t_step) from counter where e_step=(select max(e_step) from counter))>0 and (select found from goal_found)=0) or
-        ((select e_step from counter)=0 and (select t_step from counter)=0)
-begin 
-    insert into iterations values ((select max(e_step) from counter),
-                                    (select max(t_step) from counter where e_step=(select max(e_step) from counter)));
-    delete from counter;
-end;
-
--- Trigger resetting the state of the maze and then perform step
-create trigger if not exists state_reset after insert on counter
-when (select max(t_step) from counter where e_step=(select max(e_step) from counter))=0 and (select max(e_step) from counter)>0
-begin
-    
-    -- Compare with best reward
-    update best_reward set
-    reward=case 
-        when (select e_step from counter)=0 then (select reward from best_reward)
-        when (select reward from accumulated_reward)>(select reward from best_reward) then (select reward from accumulated_reward)
-        else (select reward from best_reward) end;
-
-    -- Reset accumulated reward on new episode
-    update accumulated_reward set
-    reward=0;
-    
-    -- Decrease epsilon value on new episode until a threshold
-    update input
-    set epsilon = case
-    when epsilon > 0.01 and (select e_step from counter)>0 then epsilon*97/100
-    else epsilon*1
-    end;</pre>
+                        <pre class="prettyprint lang-sql">drop table if exists input;</pre>
+                        <pre class="prettyprint lang-sql">create table input (learning_rate float, episodes int, tries int, discount float, penalty float, epsilon float);</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">drop table if exists rewards;</pre>
+                        <pre class="prettyprint lang-sql">create table rewards (i int, j int, x_ij float);</pre>
+                        <pre class="prettyprint lang-sql">create index idx_rewards on rewards (i, j);</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">drop table if exists qtable;</pre>
+                        <pre class="prettyprint lang-sql">create table qtable (i int, j int, k int, x_ijk float);</pre>
+                        <pre class="prettyprint lang-sql">create index idx_qtable on qtable (i, j, k);</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">drop table if exists agent;</pre>
+                        <pre class="prettyprint lang-sql">create table agent (x int, y int, init_x int, init_y int);</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">drop table if exists goal;</pre>
+                        <pre class="prettyprint lang-sql">create table goal (x int, y int);</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">drop table if exists best_reward;</pre>
+                        <pre class="prettyprint lang-sql">create table best_reward (reward float);</pre>
+                        <pre class="prettyprint lang-sql">insert into best_reward values (-99999);</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">-- Populate tables</pre>
+                        <pre class="prettyprint lang-sql">.import data/inputs.csv input</pre>
+                        <pre class="prettyprint lang-sql">.import data/goal.csv goal</pre>
+                        <pre class="prettyprint lang-sql">.import data/agent.csv agent</pre>
+                        <pre class="prettyprint lang-sql">.import data/rewards.csv rewards</pre>
+                        <pre class="prettyprint lang-sql">.import results/qtable-sql.csv qtable</pre>
                     </div>
                 </div>
             </div>
-
 
             <div class="container-code-row">
                 <div class="container-python">
                     <div class="floating">
-<pre>new_state, reward = make_move(action)
-max_reward += reward
-max_future_q = np.max(new_state)
-current_q = q_table[current_state[0]][current_state[1]][action]
-new_q = current_q + learning_rate * (reward + discount * max_future_q - current_q)
-q_table[current_state[0]][current_state[1]][action] = new_q</pre>
+                        <pre class="prettyprint lang-py"># Check every available option on a specific state</pre>
+                        <pre class="prettyprint lang-py">def is_valid_move(direction):</pre>
+                        <pre class="prettyprint lang-py">    global agent_pos</pre>
+                        <pre class="prettyprint lang-py">    if (direction == 0 and agent_pos[1] > 0 and</pre>
+                        <pre class="prettyprint lang-py">        rewards[agent_pos[0]][agent_pos[1] - 1] != -10):        # Check left</pre>
+                        <pre class="prettyprint lang-py">        return True</pre>
+                        <pre class="prettyprint lang-py">    elif (direction == 1 and agent_pos[1] < len(rewards)-1 and</pre>
+                        <pre class="prettyprint lang-py">           rewards[agent_pos[0]][agent_pos[1] + 1] != -10):    # Check right</pre>
+                        <pre class="prettyprint lang-py">        return True</pre>
+                        <pre class="prettyprint lang-py">    elif (direction == 2 and agent_pos[0] > 0 and</pre>
+                        <pre class="prettyprint lang-py">           rewards[agent_pos[0] - 1][agent_pos[1]] != -10):     # Check up</pre>
+                        <pre class="prettyprint lang-py">        return True</pre>
+                        <pre class="prettyprint lang-py">    elif (direction == 3 and agent_pos[0] < len(rewards)-1 and</pre>
+                        <pre class="prettyprint lang-py">           rewards[agent_pos[0] + 1][agent_pos[1]] != -10):    # Check down</pre>
+                        <pre class="prettyprint lang-py">        return True</pre>
+                        <pre class="prettyprint lang-py">    else:</pre>
+                        <pre class="prettyprint lang-py">        return False</pre>
+                        <br>
+                        <pre class="prettyprint lang-py"># Move agent to new state and return a reward for this action</pre>
+                        <pre class="prettyprint lang-py">def make_move(direction):</pre>
+                        <pre class="prettyprint lang-py">    global agent_pos</pre>
+                        <pre class="prettyprint lang-py">    if   direction == 0 and is_valid_move(0):       # Move Left</pre>
+                        <pre class="prettyprint lang-py">        agent_pos[1] -= 1</pre>
+                        <pre class="prettyprint lang-py">    elif direction == 1 and is_valid_move(1):       # Move Right</pre>
+                        <pre class="prettyprint lang-py">        agent_pos[1] += 1</pre>
+                        <pre class="prettyprint lang-py">    elif direction == 2 and is_valid_move(2):       # Move Up</pre>
+                        <pre class="prettyprint lang-py">        agent_pos[0] -= 1</pre>
+                        <pre class="prettyprint lang-py">    elif direction == 3 and is_valid_move(3):       # Move Down</pre>
+                        <pre class="prettyprint lang-py">        agent_pos[0] += 1</pre>
+                        <pre class="prettyprint lang-py">    else:</pre>
+                        <pre class="prettyprint lang-py">        return tuple(q_table[agent_pos[0]][agent_pos[1]]), penalty</pre>
+                        <pre class="prettyprint lang-py">    return tuple(q_table[agent_pos[0]][agent_pos[1]]), rewards[agent_pos[0]][agent_pos[1]]</pre>
                     </div>
                 </div>
                 <div class="container-sql">
                     <div class="floating">
-<pre>-- Reset agent's position on new episode
-update agent set
-    x=init_x,
-    y=init_y;
-
--- Reinitialize flag 
-update goal_found set
-    found = 0;
-
-insert into iterations values ((select max(e_step) from counter),
-                                (select max(t_step) from counter where e_step=(select max(e_step) from counter)));
-delete from counter;
-
-end;
-
--- TODO BE careful about this one. TESTING NEEDED
-create trigger if not exists safe_delete after insert on counter
-when (select max(t_step) from counter where e_step=(select max(e_step) from counter))>0 and (select found from goal_found)=1
-begin
-delete from counter;
-end;
-
--- Trigger running a q-learning step
-create trigger if not exists q_learning after insert on iterations
-begin
--- Find next action and check if valid
-update selected_action
-set action = (select a from get_action);
-update selected_action
-set valid = (select a from valid_action);
-
--- Create new state
-update new_state set
-    i=(select
-        case
-        when (select action from selected_action)=2 and (select valid from selected_action)=1 then (select x from agent)-1
-        when (select action from selected_action)=3 and (select valid from selected_action)=1 then (select x from agent)+1
-        else (select x from agent) end),
-    j=(select
-        case
-        when (select action from selected_action)=0 and (select valid from selected_action)=1 then (select y from agent)-1
-        when (select action from selected_action)=1 and (select valid from selected_action)=1 then (select y from agent)+1
-        else (select y from agent) end),
-    reward=null;</pre>
+                        <pre class="prettyprint lang-sql">drop table if exists selected_action;</pre>
+                        <pre class="prettyprint lang-sql">create table selected_action (action int, valid int);</pre>
+                        <pre class="prettyprint lang-sql">insert into selected_action values (null, null);</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">-- Check if selected action is valid</pre>
+                        <pre class="prettyprint lang-sql">drop view if exists valid_action;</pre>
+                        <pre class="prettyprint lang-sql">create view valid_action (a) as</pre>
+                        <pre class="prettyprint lang-sql">select case</pre>
+                        <pre class="prettyprint lang-sql">    when (select action from selected_action)=0</pre>
+                        <pre class="prettyprint lang-sql">        and (select y from agent)>0</pre>
+                        <pre class="prettyprint lang-sql">        and (select x_ij from rewards where i=(select x from agent)</pre>
+                        <pre class="prettyprint lang-sql">        and j=(select y from agent)-1)<>(select penalty from input) then 1</pre>
+                        <pre class="prettyprint lang-sql">    when (select action from selected_action)=1</pre>
+                        <pre class="prettyprint lang-sql">        and (select y from agent)<(select count(*) from rewards)-1</pre>
+                        <pre class="prettyprint lang-sql">        and (select x_ij from rewards where i=(select x from agent)</pre>
+                        <pre class="prettyprint lang-sql">        and j=(select y from agent)+1)<>(select penalty from input) then 1</pre>
+                        <pre class="prettyprint lang-sql">    when (select action from selected_action)=2</pre>
+                        <pre class="prettyprint lang-sql">        and (select x from agent)>0</pre>
+                        <pre class="prettyprint lang-sql">        and (select x_ij from rewards where i=(select x from agent)-1</pre>
+                        <pre class="prettyprint lang-sql">        and j=(select y from agent))<>(select penalty from input) then 1</pre>
+                        <pre class="prettyprint lang-sql">    when (select action from selected_action)=3</pre>
+                        <pre class="prettyprint lang-sql">        and (select x from agent)<(select count(*) from rewards)-1</pre>
+                        <pre class="prettyprint lang-sql">        and (select x_ij from rewards where i=(select x from agent)+1</pre>
+                        <pre class="prettyprint lang-sql">        and j=(select y from agent))<>(select penalty from input) then 1</pre>
+                        <pre class="prettyprint lang-sql">    else 0</pre>
+                        <pre class="prettyprint lang-sql">end;</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">-- Select action based on epsilon-decreasing strategy</pre>
+                        <pre class="prettyprint lang-sql">drop view if exists get_action;</pre>
+                        <pre class="prettyprint lang-sql">create view get_action (a) as</pre>
+                        <pre class="prettyprint lang-sql">select case</pre>
+                        <pre class="prettyprint lang-sql">    when (select rnd from get_random) < (select epsilon from input)</pre>
+                        <pre class="prettyprint lang-sql">        then round((select rnd from get_random)*3)</pre>
+                        <pre class="prettyprint lang-sql">    else (select k from argmax_action)</pre>
+                        <pre class="prettyprint lang-sql">end;</pre>
                     </div>
                 </div>
             </div>
 
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py">import numpy as np</pre>
+                        <pre class="prettyprint lang-py"><br></pre>
+                        <pre class="prettyprint lang-py">uniform = random.uniform(0, 1)</pre>
+                        <pre class="prettyprint lang-py">action = random.randint(0, 3)</pre>
+                        <pre class="prettyprint lang-py">max_future_q = np.max(new_state)</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+                        <pre class="prettyprint lang-sql">-- Returns random number in range (0,1)</pre>
+                        <pre class="prettyprint lang-sql">drop view if exists get_random;</pre>
+                        <pre class="prettyprint lang-sql">create view get_random as</pre>
+                        <pre class="prettyprint lang-sql">select abs(1.*random()/9223372036854775807) as rnd;</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">-- Returns argmax of actions for the new state</pre>
+                        <pre class="prettyprint lang-sql">drop view if exists argmax_action;</pre>
+                        <pre class="prettyprint lang-sql">create view argmax_action (k, x_ijk) as</pre>
+                        <pre class="prettyprint lang-sql">select k, x_ijk</pre>
+                        <pre class="prettyprint lang-sql">from qtable</pre>
+                        <pre class="prettyprint lang-sql">where x_ijk = (select max(x_ijk) from qtable where i=(select x from agent)</pre>
+                        <pre class="prettyprint lang-sql">    and j=(select y from agent)) and i=(select x from agent)</pre>
+                        <pre class="prettyprint lang-sql">    and j=(select y from agent) limit 1;</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating lang">
+                        <h3>Python has standard looping mechanisms (while and for loops).</h3>
+                        <h3>You can check them out <a href='loops.html'>here</a>.</h3>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating lang">
+                        <h3>SQLite can iterate through collections through the use of recursive views.</h3>
+                        <h3>On each recursive run, triggers can be used to alter the logic.</h3>
+                        <h3>You can check out recursive views <a href='loops.html'>here</a>.</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py"># In python in order to break the inner loop we just use the break keyword.</pre>
+                        <pre class="prettyprint lang-py"># In Q-learning this needs to be done when the agent has found the goal state.</pre>
+                        <br>
+                        <pre class="prettyprint lang-py">if reward == rewards[goal_pos[0]][goal_pos[1]]:</pre>
+                        <pre class="prettyprint lang-py">    break</pre>
+                        <br>
+                        <pre class="prettyprint lang-py"># Reset agent's position to initial position</pre>
+                        <pre class="prettyprint lang-py">agent_pos = np.copy(initial_pos)</pre>
+                        <br>
+                        <pre class="prettyprint lang-py"># Reduce the greedy parameter</pre>
+                        <pre class="prettyprint lang-py">if epsilon > 0.01:</pre>
+                        <pre class="prettyprint lang-py">    epsilon *= 97/100</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+                        <pre class="prettyprint lang-sql">-- In SQLite we can't break the recursive view through a dynamic changing table.</pre>
+                        <pre class="prettyprint lang-sql">-- In order to simulate breaking when the goal is found, a trigger is used such that</pre>
+                        <pre class="prettyprint lang-sql">-- when the goal flag is true, the Q-learning step is bypassed.</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">-- The functionality takes place in the form of 3 triggers on the counter table, which</pre>
+                        <pre class="prettyprint lang-sql">-- act like the checking mechanisms, and one trigger on a new iterations table which</pre>
+                        <pre class="prettyprint lang-sql">-- actually performs the Q-learning update.</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">-- Tuple containing the number of episode and try for that episode</pre>
+                        <pre class="prettyprint lang-sql">drop table if exists iterations;</pre>
+                        <pre class="prettyprint lang-sql">create table iterations (e_step int, t_step int);</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">-- Trigger to perform step</pre>
+                        <pre class="prettyprint lang-sql">create trigger if not exists compute_step after insert on counter</pre>
+                        <pre class="prettyprint lang-sql">when ((select max(t_step) from counter where e_step=(select max(e_step) from counter))>0</pre>
+                        <pre class="prettyprint lang-sql">    and (select found from goal_found)=0)</pre>
+                        <pre class="prettyprint lang-sql">    or ((select e_step from counter)=0 and (select t_step from counter)=0)</pre>
+                        <pre class="prettyprint lang-sql">begin </pre>
+                        <pre class="prettyprint lang-sql">    insert into iterations values ((select max(e_step) from counter),</pre>
+                        <pre class="prettyprint lang-sql">        (select max(t_step) from counter where e_step=(select max(e_step) from counter)));</pre>
+                        <pre class="prettyprint lang-sql">    delete from counter;</pre>
+                        <pre class="prettyprint lang-sql">end;</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">-- Trigger resetting the state of the maze and then perform step</pre>
+                        <pre class="prettyprint lang-sql">create trigger if not exists state_reset after insert on counter</pre>
+                        <pre class="prettyprint lang-sql">when (select max(t_step) from counter where e_step=(select max(e_step) from counter))=0</pre>
+                        <pre class="prettyprint lang-sql">    and (select max(e_step) from counter)>0</pre>
+                        <pre class="prettyprint lang-sql">begin</pre>
+                        <pre class="prettyprint lang-sql">    -- Compare with best reward</pre>
+                        <pre class="prettyprint lang-sql">    update best_reward set</pre>
+                        <pre class="prettyprint lang-sql">    reward=case </pre>
+                        <pre class="prettyprint lang-sql">        when (select e_step from counter)=0 then (select reward from best_reward)</pre>
+                        <pre class="prettyprint lang-sql">        when (select reward from accumulated_reward)>(select reward from best_reward) then</pre>
+                        <pre class="prettyprint lang-sql">             (select reward from accumulated_reward)</pre>
+                        <pre class="prettyprint lang-sql">        else (select reward from best_reward) end;</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">    -- Reset accumulated reward on new episode</pre>
+                        <pre class="prettyprint lang-sql">    update accumulated_reward set</pre>
+                        <pre class="prettyprint lang-sql">    reward=0;</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">    -- Decrease epsilon value on new episode until a threshold</pre>
+                        <pre class="prettyprint lang-sql">    update input</pre>
+                        <pre class="prettyprint lang-sql">    set epsilon = case</pre>
+                        <pre class="prettyprint lang-sql">    when epsilon > 0.01 and (select e_step from counter)>0 then epsilon*97/100</pre>
+                        <pre class="prettyprint lang-sql">    else epsilon*1</pre>
+                        <pre class="prettyprint lang-sql">    end;</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">    -- Reset agent's position on new episode</pre>
+                        <pre class="prettyprint lang-sql">    update agent set</pre>
+                        <pre class="prettyprint lang-sql">    x=init_x,</pre>
+                        <pre class="prettyprint lang-sql">    y=init_y;</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">    -- Reinitialize flag </pre>
+                        <pre class="prettyprint lang-sql">    update goal_found set</pre>
+                        <pre class="prettyprint lang-sql">    found = 0;</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">    insert into iterations values ((select max(e_step) from counter),</pre>
+                        <pre class="prettyprint lang-sql">        (select max(t_step) from counter where e_step=(select max(e_step) from counter)));</pre>
+                        <pre class="prettyprint lang-sql">    delete from counter;</pre>
+                        <pre class="prettyprint lang-sql">end;</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">-- This trigger boosts speed as it deletes left-over rows in table counter</pre>
+                        <pre class="prettyprint lang-sql">create trigger if not exists safe_delete after insert on counter</pre>
+                        <pre class="prettyprint lang-sql">when (select max(t_step) from counter where e_step=(select max(e_step) from counter))>0</pre>
+                        <pre class="prettyprint lang-sql">    and (select found from goal_found)=1</pre>
+                        <pre class="prettyprint lang-sql">begin</pre>
+                        <pre class="prettyprint lang-sql">    delete from counter;</pre>
+                        <pre class="prettyprint lang-sql">end;</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">-- Trigger running a q-learning step</pre>
+                        <pre class="prettyprint lang-sql">create trigger if not exists q_learning after insert on iterations</pre>
+                        <pre class="prettyprint lang-sql">begin</pre>
+                        <pre class="prettyprint lang-sql">    -- Perform a Q-learning step (shown below)</pre>
+                        <pre class="prettyprint lang-sql">end;</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating lang">
+                        <h3>Q-learning update in Python.</h3>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating lang">
+                        <h3>Q-learning update in SQLite.</h3></h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py">current_state = tuple(np.copy(agent_pos))</pre>
+                        <pre class="prettyprint lang-py">uniform = random.uniform(0, 1)</pre>
+                        <br>
+                        <pre class="prettyprint lang-py"># If random number is less than ε then explore else exploit (make agent greedy)</pre>
+                        <pre class="prettyprint lang-py">if uniform < epsilon:</pre>
+                        <pre class="prettyprint lang-py">    action = random.randint(0, 3)</pre>
+                        <pre class="prettyprint lang-py">    if generate_rnd_values:</pre>
+                        <pre class="prettyprint lang-py">        rnd_values.append([i, j, uniform, action])</pre>
+                        <pre class="prettyprint lang-py">else:</pre>
+                        <pre class="prettyprint lang-py">    action = np.argmax(q_table[agent_pos[0]][agent_pos[1]])</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+                        <pre class="prettyprint lang-sql">update selected_action</pre>
+                        <pre class="prettyprint lang-sql">    set action = (select a from get_action);</pre>
+                        <pre class="prettyprint lang-sql">    update selected_action</pre>
+                        <pre class="prettyprint lang-sql">    set valid = (select a from valid_action);</pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py">new_state, reward = make_move(action)</pre>
+                        <pre class="prettyprint lang-py">max_reward += reward</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+                        <pre class="prettyprint lang-sql">-- Create new state</pre>
+                        <pre class="prettyprint lang-sql">update new_state set</pre>
+                        <pre class="prettyprint lang-sql">  i=(select</pre>
+                        <pre class="prettyprint lang-sql">     case</pre>
+                        <pre class="prettyprint lang-sql">       when (select action from selected_action)=2</pre>
+                        <pre class="prettyprint lang-sql">           and (select valid from selected_action)=1 then (select x from agent)-1</pre>
+                        <pre class="prettyprint lang-sql">       when (select action from selected_action)=3</pre>
+                        <pre class="prettyprint lang-sql">           and (select valid from selected_action)=1 then (select x from agent)+1</pre>
+                        <pre class="prettyprint lang-sql">       else (select x from agent) end),</pre>
+                        <pre class="prettyprint lang-sql">  j=(select</pre>
+                        <pre class="prettyprint lang-sql">     case</pre>
+                        <pre class="prettyprint lang-sql">       when (select action from selected_action)=0</pre>
+                        <pre class="prettyprint lang-sql">           and (select valid from selected_action)=1 then (select y from agent)-1</pre>
+                        <pre class="prettyprint lang-sql">       when (select action from selected_action)=1</pre>
+                        <pre class="prettyprint lang-sql">           and (select valid from selected_action)=1 then (select y from agent)+1</pre>
+                        <pre class="prettyprint lang-sql">       else (select y from agent) end),</pre>
+                        <pre class="prettyprint lang-sql">  reward=null;</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">-- Find reward for new state</pre>
+                        <pre class="prettyprint lang-sql">update new_state set reward = case</pre>
+                        <pre class="prettyprint lang-sql">  when (select i from new_state)<>(select x from agent)</pre>
+                        <pre class="prettyprint lang-sql">      or (select j from new_state)<>(select y from agent) then</pre>
+                        <pre class="prettyprint lang-sql">          (select x_ij from rewards where i=(select i from new_state)</pre>
+                        <pre class="prettyprint lang-sql">          and j=(select j from new_state))</pre>
+                        <pre class="prettyprint lang-sql">  else (select penalty from input)</pre>
+                        <pre class="prettyprint lang-sql">  end;</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">-- Increment the accumulated reward with new reward gained</pre>
+                        <pre class="prettyprint lang-sql">update accumulated_reward set</pre>
+                        <pre class="prettyprint lang-sql">    reward = (select reward from accumulated_reward)+(select reward from new_state);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py">max_future_q = np.max(new_state)</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+                        <pre class="prettyprint lang-sql">drop view if exists max_future_q;</pre>
+                        <pre class="prettyprint lang-sql">create view max_future_q (a) as</pre>
+                        <pre class="prettyprint lang-sql">select x_ijk</pre>
+                        <pre class="prettyprint lang-sql">from qtable</pre>
+                        <pre class="prettyprint lang-sql">where x_ijk = (select max(x_ijk) from qtable where i=(select i from new_state)</pre>
+                        <pre class="prettyprint lang-sql">    and j=(select j from new_state)) limit 1;</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py">current_q = q_table[current_state[0]][current_state[1]][action]</pre>
+                        <pre class="prettyprint lang-py">new_q = current_q + learning_rate * (reward + discount * max_future_q - current_q)</pre>
+                        <pre class="prettyprint lang-py">q_table[current_state[0]][current_state[1]][action] = new_q</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+                        <pre class="prettyprint lang-sql">update qtable set x_ijk =</pre>
+                        <pre class="prettyprint lang-sql">    -- old value</pre>
+                        <pre class="prettyprint lang-sql">    (select x_ijk from qtable where i=(select x from agent) and j=(select y from agent)</pre>
+                        <pre class="prettyprint lang-sql">    and k=(select action from selected_action))+</pre>
+                        <pre class="prettyprint lang-sql">    (select learning_rate from input)*</pre>
+                        <pre class="prettyprint lang-sql">    -- temporal difference</pre>
+                        <pre class="prettyprint lang-sql">    ((select reward from new_state)+</pre>
+                        <pre class="prettyprint lang-sql">    (select discount from input)*</pre>
+                        <pre class="prettyprint lang-sql">    (select a from max_future_q)-</pre>
+                        <pre class="prettyprint lang-sql">    (select x_ijk from qtable where i=(select x from agent) and j=(select y from agent)</pre>
+                        <pre class="prettyprint lang-sql">    and k=(select action from selected_action)))</pre>
+                        <pre class="prettyprint lang-sql">where i=(select x from agent) and j=(select y from agent)</pre>
+                        <pre class="prettyprint lang-sql">    and k=(select action from selected_action);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py">if reward == rewards[goal_pos[0]][goal_pos[1]]:</pre>
+                        <pre class="prettyprint lang-py">    break</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+                        <pre class="prettyprint lang-sql">update goal_found set</pre>
+                        <pre class="prettyprint lang-sql">    found = case</pre>
+                        <pre class="prettyprint lang-sql">        when (select i from new_state)=(select x from goal)</pre>
+                        <pre class="prettyprint lang-sql">            and (select j from new_state)=(select y from goal) then 1</pre>
+                        <pre class="prettyprint lang-sql">        else 0</pre>
+                        <pre class="prettyprint lang-sql">        end;</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py">current_state = new_state</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+                        <pre class="prettyprint lang-sql">update agent set</pre>
+                        <pre class="prettyprint lang-sql">    x = (select i from new_state),</pre>
+                        <pre class="prettyprint lang-sql">    y = (select j from new_state);</pre>
+                    </div>
+                </div>
+            </div>
             
         </div>
     </body>

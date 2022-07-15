@@ -6,8 +6,11 @@
         <title>FeReD - Code</title>
         <link rel="stylesheet" type="text/css" href="code.css"/>
         <link href='https://fonts.googleapis.com/css?family=Alata' rel='stylesheet'>
+        <link rel="stylesheet" type="text/css" href="google-code-prettify/prettify.css">
+        <script type="text/javascript" src="google-code-prettify/prettify.js"></script>
+        <script type="text/javascript" src="google-code-prettify/lang-sql.js"></script>
     </head>
-    <body>
+    <body onload="PR.prettyPrint()">
         <div class="container">
             <div class="container-title">
                 <h2>Code comparison: Loops</h2>
@@ -27,31 +30,34 @@
             <div class="container-code-row">
                 <div class="container-python">
                     <div class="floating">
-                        <pre>for i in range(episodes):</pre>
-                        <pre>    for j in range(tries):</pre>
-                        <pre>    # Algorithm</pre>
+                        <pre class="prettyprint lang-py">for i in range(episodes):</pre>
+                        <pre class="prettyprint lang-py">    for j in range(tries):</pre>
+                        <pre class="prettyprint lang-py">        # Algorithm's logic</pre>
                     </div>
                 </div>
                 <div class="container-sql">
                     <div class="floating">
-                        <pre>with recursive</pre>
-                        <pre>    episodes(e_step) as (</pre>
-                        <pre>      values(0)</pre>
-                        <pre>      union all</pre>
-                        <pre>      select e_step+1 from episodes</pre>
-                        <pre>      where e_step < (select episodes from input)-1</pre>
-                        <pre>    ),</pre>
-                        <pre>    tries(t_step) as (</pre>
-                        <pre>      values(0)</pre>
-                        <pre>      union all</pre>
-                        <pre>      select t_step+1 from tries</pre>
-                        <pre>      where t_step < (select tries from input)-1</pre>
-                        <pre>    )</pre>
-                        <pre>insert into counter select episodes.e_step, tries.t_step from episodes, tries;</pre>
+                        <pre class="prettyprint lang-sql">drop table if exists counter;</pre>
+                        <pre class="prettyprint lang-sql">create table counter (e_step int, t_step int);</pre>
                         <br>
-                        <pre>create trigger if not exists compute_step after insert on counter</pre>
-                        <pre>  -- Algorithm</pre>
-                        <pre>end;</pre>
+                        <pre class="prettyprint lang-sql">create trigger if not exists compute_step after insert on counter</pre>
+                        <pre class="prettyprint lang-sql">    -- Algorithm's logic</pre>
+                        <pre class="prettyprint lang-sql">end;</pre>
+                        <br>
+                        <pre class="prettyprint lang-sql">with recursive</pre>
+                        <pre class="prettyprint lang-sql">    episodes(e_step) as (</pre>
+                        <pre class="prettyprint lang-sql">      values(0)</pre>
+                        <pre class="prettyprint lang-sql">      union all</pre>
+                        <pre class="prettyprint lang-sql">      select e_step+1 from episodes</pre>
+                        <pre class="prettyprint lang-sql">      where e_step < (select episodes from input)-1</pre>
+                        <pre class="prettyprint lang-sql">    ),</pre>
+                        <pre class="prettyprint lang-sql">    tries(t_step) as (</pre>
+                        <pre class="prettyprint lang-sql">      values(0)</pre>
+                        <pre class="prettyprint lang-sql">      union all</pre>
+                        <pre class="prettyprint lang-sql">      select t_step+1 from tries</pre>
+                        <pre class="prettyprint lang-sql">      where t_step < (select tries from input)-1</pre>
+                        <pre class="prettyprint lang-sql">    )</pre>
+                        <pre class="prettyprint lang-sql">insert into counter select episodes.e_step, tries.t_step from episodes, tries;</pre>
                     </div>
                 </div>
             </div>
