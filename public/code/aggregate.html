@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8">
+        <title>FeReD - Code</title>
+        <link rel="stylesheet" type="text/css" href="code.css"/>
+        <link href='https://fonts.googleapis.com/css?family=Alata' rel='stylesheet'>
+        <link rel="stylesheet" type="text/css" href="google-code-prettify/prettify.css">
+        <script type="text/javascript" src="google-code-prettify/prettify.js"></script>
+        <script type="text/javascript" src="google-code-prettify/lang-sql.js"></script>
+    </head>
+    <body onload="PR.prettyPrint()">
+        <div class="container">
+            <div class="container-title">
+                <h2>Code comparison: Aggregation</h2>
+            </div>
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating lang infobox">
+                        <h2>Horizontal Partitioning</h2>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating lang infobox">
+                        <h2>Vertical Partitioning</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py"># Load global model into memory</pre>
+                        <pre class="prettyprint lang-py">q_table = matrix_from_csv('results/qtable-' + format + '.csv')</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py"># Load global model into memory</pre>
+                        <pre class="prettyprint lang-py">q_table = matrix_from_csv("data/global-qtable-" + format + ".csv")</pre>
+                    </div>
+                </div>
+            </div>
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py"># Load client's models into memory</pre>
+                        <pre class="prettyprint lang-py">directory = "federated_data/policies"</pre>
+                        <pre class="prettyprint lang-py">for filename in os.listdir(directory):</pre>
+                        <pre class="prettyprint lang-py">    f = os.path.join(directory, filename)</pre>
+                        <pre class="prettyprint lang-py">    client_qtable = matrix_from_csv(f)</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py"># Load explored states and current candidate in memory</pre>
+                        <pre class="prettyprint lang-py">candidate = read_from_csv("data/candidate-" + format + ".csv")</pre>
+                        <pre class="prettyprint lang-py">explored_states = []</pre>
+                        <pre class="prettyprint lang-py">with open("data/explored-states-" + format + ".csv") as f:</pre>
+                        <pre class="prettyprint lang-py">    vals = list(csv.reader(f, delimiter=";"))</pre>
+                        <pre class="prettyprint lang-py">    for val in vals:</pre>
+                        <pre class="prettyprint lang-py">        explored_states.append([int(val[0]), int(val[1])])</pre>
+                        <br>
+                        <pre class="prettyprint lang-py"># Load client's models into memory</pre>
+                        <pre class="prettyprint lang-py">policies_path = "federated_data/policies"</pre>
+                        <pre class="prettyprint lang-py">partitions_path = "federated_data/partitions/partition"</pre>
+                        <pre class="prettyprint lang-py">client_partitions = {}</pre>
+                        <pre class="prettyprint lang-py">for filename in os.listdir(policies_path):</pre>
+                        <pre class="prettyprint lang-py">    f = os.path.join(policies_path, filename)</pre>
+                        <pre class="prettyprint lang-py">    client_id = int(filename[6:-4])</pre>
+                        <pre class="prettyprint lang-py">    client_partitions[client_id] = [matrix_from_csv(f),</pre>
+                        <pre class="prettyprint lang-py">         read_from_csv(partitions_path + str(client_id) + ".csv")]</pre>
+                    </div>
+                </div>
+            </div>
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py"># Perform aggregation</pre>
+                        <pre class="prettyprint lang-py">updates = {}</pre>
+                        <pre class="prettyprint lang-py">for i in range(client_qtable.shape[0]):</pre>
+                        <pre class="prettyprint lang-py">    for j in range(client_qtable.shape[1]):</pre>
+                        <pre class="prettyprint lang-py">        for k in range(client_qtable.shape[2]):</pre>
+                        <pre class="prettyprint lang-py">            if client_qtable[i,j,k] != q_table[i,j,k]:</pre>
+                        <pre class="prettyprint lang-py">                if (i, j, k) not in updates:</pre>
+                        <pre class="prettyprint lang-py">                    updates[(i,j,k)] = [client_qtable[i,j,k]]</pre>
+                        <pre class="prettyprint lang-py">                else:</pre>
+                        <pre class="prettyprint lang-py">                    updates[(i,j,k)].append(client_qtable[i,j,k])</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py"># Perform aggregation</pre>
+                        <pre class="prettyprint lang-py">updates = {}</pre>
+                        <pre class="prettyprint lang-py">for _ , model in client_partitions.items():</pre>
+                        <pre class="prettyprint lang-py">    client_qtable = model[0]</pre>
+                        <pre class="prettyprint lang-py">    offset_i, offset_j, par_size = model[1]</pre>
+                        <pre class="prettyprint lang-py">    for i in range(client_qtable.shape[0]):</pre>
+                        <pre class="prettyprint lang-py">        for j in range(client_qtable.shape[1]):</pre>
+                        <pre class="prettyprint lang-py">            maze_pos_x = i + offset_i  # Map to position in global model</pre>
+                        <pre class="prettyprint lang-py">            maze_pos_y = j + offset_j  # Map to position in global model</pre>
+                        <pre class="prettyprint lang-py">            if not explored_states or [maze_pos_x, maze_pos_y] not in explored_states:</pre>
+                        <pre class="prettyprint lang-py">                for k in range(client_qtable.shape[2]):</pre>
+                        <pre class="prettyprint lang-py">                    if client_qtable[i,j,k] != q_table[maze_pos_x, maze_pos_y, k]:</pre>
+                        <pre class="prettyprint lang-py">                        if (maze_pos_x, maze_pos_y, k) not in updates:</pre>
+                        <pre class="prettyprint lang-py">                            updates[(maze_pos_x, maze_pos_y, k)] = [client_qtable[i,j,k]]</pre>
+                        <pre class="prettyprint lang-py">                        else:</pre>
+                        <pre class="prettyprint lang-py">                            updates[(maze_pos_x, maze_pos_y, k)].append(client_qtable[i,j,k])</pre>
+                    </div>
+                </div>
+            </div>
+            <div class="container-code-row">
+                <div class="container-python">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py"># Average the updates</pre>
+                        <pre class="prettyprint lang-py">for pos, values in updates.items():</pre>
+                        <pre class="prettyprint lang-py">    q_table[pos[0],pos[1],pos[2]] = sum(values) / len(values)</pre>
+                    </div>
+                </div>
+                <div class="container-sql">
+                    <div class="floating">
+                        <pre class="prettyprint lang-py"># Average the updates</pre>
+                        <pre class="prettyprint lang-py">for pos, values in updates.items():</pre>
+                        <pre class="prettyprint lang-py">    updates[pos] = sum(values) / len(values)</pre>
+                        <br>
+                        <pre class="prettyprint lang-py"># Normalize values</pre>
+                        <pre class="prettyprint lang-py">target_min = 0</pre>
+                        <pre class="prettyprint lang-py">target_max = max(q_table[candidate[0], candidate[1]]) - 0.001 * max(q_table[candidate[0], candidate[1]])</pre>
+                        <pre class="prettyprint lang-py">if target_max == 0:</pre>
+                        <pre class="prettyprint lang-py">    target_max = 100</pre>
+                        <pre class="prettyprint lang-py">update_min = min(updates.values())</pre>
+                        <pre class="prettyprint lang-py">update_max = max(updates.values())</pre>
+                        <pre class="prettyprint lang-py">for pos, values in updates.items():</pre>
+                        <pre class="prettyprint lang-py">    new_val = ((values - update_min)/(update_max - update_min)) * (target_max - target_min) + target_min</pre>
+                        <pre class="prettyprint lang-py">    q_table[pos[0],pos[1],pos[2]] = new_val</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
