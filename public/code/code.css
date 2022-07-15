@@ -68,7 +68,7 @@ h4 {
 }
 
 img {
-	min-width: 0;
+	height: 50px;
 }
 
 /*------------------- Root Level -------------------*/
@@ -76,9 +76,9 @@ img {
 	display: flex;
     flex-direction: column;
 	align-items: center;
-	width: 100vw;
-	height: 100vh;
+	min-height: 100vh;
 	background-color: #f5f8fd;
+	background-image: linear-gradient(to right, #ffd545, #2596be, #8fd4f5);
 }
 
 .floating {
@@ -94,10 +94,18 @@ img {
 
 .lang {
 	text-align: center;
+	display: flex;
+	justify-content: center;
+}
+
+.infobox {
+	text-align: left;
+	border: solid darkslateblue 2px;
+    background-color: darksalmon;
 }
 
 .container-title {
-    height: 10%;
+    height: 80px;
     width: 100%;
     display: flex;
     justify-content: center;
