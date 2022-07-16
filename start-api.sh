@@ -12,8 +12,6 @@ tries=$8
 learning_rate=$9
 mode=${10}
 
-echo "${mode}"
-
 if [ $1 == "apply-model" ]; then
   sh clean.sh    # Clean old files if they exist
 

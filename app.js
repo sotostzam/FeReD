@@ -5,7 +5,7 @@ const WebSocket = require('ws');
 const wss = new WebSocket.Server({ port:8081 });
 
 wss.on('connection', function connection(ws) {
-    console.log('Connection with client established.');
+    console.log('Client connected successfully.');
 
     var args = null;
     const { spawn } = require('node:child_process');
@@ -30,7 +30,6 @@ wss.on('connection', function connection(ws) {
             console.log(`error: ${err}`);
         });
         apply_worker.on('close', (code) => {
-            console.log(`close with code: ${code}`);
             if (code == 0) {
                 ws.send(JSON.stringify({status: "ready"}));
             };
@@ -53,7 +52,7 @@ wss.on('connection', function connection(ws) {
             console.log(`error: ${err}`);
         });
         run_worker.on('close', (code) => {
-            console.log(`close with code: ${code}`);
+            return true
         });
     };
 
@@ -77,8 +76,12 @@ wss.on('connection', function connection(ws) {
             case 'stop':
                 counter_worker.send(JSON.stringify({command: "stop"}));
         };
-    })
+    });
+    
+    ws.on('close', function() {
+      console.log("Client disconnected.");
+    });
 })
 
-app.listen(8000, () => console.log('listening at 8000'));
+app.listen(8000, () => console.log('To access FeReD, open the following URL: http://localhost:8000'));
 app.use(express.static('public'));
