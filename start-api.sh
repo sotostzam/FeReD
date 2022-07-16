@@ -11,6 +11,7 @@ episodes=$7
 tries=$8
 learning_rate=$9
 mode=${10}
+tests=${11}
 
 if [ $1 == "apply-model" ]; then
   sh clean.sh    # Clean old files if they exist
@@ -40,14 +41,24 @@ if [ $1 == "apply-model" ]; then
     touch ./data/candidate-python.csv
     touch ./data/candidate-sql.csv
   fi
-  mkdir -p ./plots/round0              # Create directory to hold initial figures
-  python3 plot.py "initialize" $rounds # Create initial plots and figures
+  if [ $tests -eq 0 ]; then
+    mkdir -p ./plots/round0              # Create directory to hold initial figures
+    python3 plot.py "initialize" $rounds # Create initial plots and figures
+  fi
 fi
 
 if [ $1 == "run-model" ]; then
   if [ $partition == "horizontal" ]; then
-    bash frl_horizontal.sh $clients $rounds $mode $episodes $tries $size $learning_rate 1
+    if [ $tests -eq 1 ]; then
+      bash frl_horizontal.sh $clients $rounds $mode $episodes $tries $size $learning_rate $tests 100
+    else
+      bash frl_horizontal.sh $clients $rounds $mode $episodes $tries $size $learning_rate $tests 1
+    fi
   else
-    bash frl_vertical.sh $clients $rounds $par_size $episodes $tries $size $learning_rate 1
+    if [ $tests -eq 1 ]; then
+      bash frl_vertical.sh $clients $rounds $par_size $episodes $tries $size $learning_rate $tests 100
+    else
+      bash frl_vertical.sh $clients $rounds $par_size $episodes $tries $size $learning_rate $tests 1
+    fi
   fi
 fi

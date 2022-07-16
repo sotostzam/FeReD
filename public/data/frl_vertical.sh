@@ -13,10 +13,8 @@ lr=$7          # Learning rate
 epsilon=0.8    # Epsilon
 
 # Testing Parameters
-R=$8           # Number of runs for client and server computations
-
-# Plotting Parameters
-create_snapshots=1      # Create snapshots of client data at each round
+tests=$8       # Allows for snapshots of client data at each round if tests are false
+R=$9           # Number of runs for client and server computations
 
 #echo "Vertical Federated Reinforcement Learning"
 #echo "Sever parameters: Federated Rounds=$rounds Clients=$clients"
@@ -78,7 +76,7 @@ for round in `seq 1 $rounds`; do
     fi
 
     # Create a snapshot of the current round
-    if [ $create_snapshots -eq 1 ] && [ $i -eq $R ]; then
+    if [ $tests -eq 0 ] && [ $i -eq $R ]; then
       #mkdir -p ./results/round_results/round$round
       #cp -a ./federated_data/policies/. ./results/round_results/round$round/python_policies
       #cp -a ./federated_data/layouts/. ./results/round_results/round$round/python_layouts/
@@ -170,7 +168,7 @@ for round in `seq 1 $rounds`; do
     fi
 
     # Create a snapshot of the current round
-    if [ $create_snapshots -eq 1 ] && [ $i -eq $R ]; then
+    if [ $tests -eq 0 ] && [ $i -eq $R ]; then
       #mkdir -p ./results/round_results/round$round
       #cp -a ./federated_data/policies/. ./results/round_results/round$round/sql_policies
       #cp -a ./federated_data/layouts/. ./results/round_results/round$round/sql_layouts/

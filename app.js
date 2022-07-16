@@ -63,7 +63,8 @@ wss.on('connection', function connection(ws) {
                 args = `${msg.parameters.learning_problem} ${msg.parameters.data_partitioning} ` + 
                        `${msg.parameters.federated_rounds} ${msg.parameters.clients} ` + 
                        `${msg.parameters.partition_size} ${msg.parameters.episodes} ` +
-                       `${msg.parameters.tries} ${msg.parameters.learning_rate} ${msg.parameters.random_pos}`;
+                       `${msg.parameters.tries} ${msg.parameters.learning_rate} ` +
+                       `${msg.parameters.random_pos} 0`;
                        
                 if (apply_worker != null) { process.kill(-apply_worker.pid); };
                 if (run_worker != null)   { process.kill(-run_worker.pid); };
