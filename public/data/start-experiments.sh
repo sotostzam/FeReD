@@ -1,6 +1,7 @@
 #!/bin/bash
 
-cd public/data
+mkdir -p experiments
+rm -rf ./experiments/*
 
 size=15
 rounds=(50 100 200)
@@ -23,8 +24,8 @@ for round in ${rounds[@]}; do
           experiment_number=$(echo "$experiment_number + 1" | bc -l | sed 's/^\./0./')
           echo "Experiment number: $experiment_number/$n_experiments"
           echo -e "Parameters: HFRL, $round F_rounds, $n_clients Clients, $n_episodes Episodes, $n_tries Length, Mode $mode\n"
-          #bash start-api.sh "apply-model" $size "horizontal" $round $n_clients -1 $n_episodes $n_tries $learning_rate $mode 1
-          #bash start-api.sh "run-model" $size "horizontal" $round $n_clients -1 $n_episodes $n_tries $learning_rate $mode 1
+          bash start-api.sh "apply-model" $size "horizontal" $round $n_clients -1 $n_episodes $n_tries $learning_rate $mode 1
+          bash start-api.sh "run-model" $size "horizontal" $round $n_clients -1 $n_episodes $n_tries $learning_rate $mode 1
         done
 
         # Vertical partitioning of data experiments
@@ -32,8 +33,8 @@ for round in ${rounds[@]}; do
           experiment_number=$(echo "$experiment_number + 1" | bc -l | sed 's/^\./0./')
           echo "Experiment number: $experiment_number/$n_experiments"
           echo -e "Parameters: VFRL, $round F_rounds, $n_clients Clients, $n_episodes Episodes, $n_tries Length, Partition Size $partition_size\n"
-          #bash start-api.sh "apply-model" $size "vertical" $round $n_clients $partition_size $n_episodes $n_tries $learning_rate -1 1
-          #bash start-api.sh "run-model" $size "vertical" $round $n_clients $partition_size $n_episodes $n_tries $learning_rate -1 1
+          bash start-api.sh "apply-model" $size "vertical" $round $n_clients $partition_size $n_episodes $n_tries $learning_rate -1 1
+          bash start-api.sh "run-model" $size "vertical" $round $n_clients $partition_size $n_episodes $n_tries $learning_rate -1 1
         done
 
       done   # number of tries loop

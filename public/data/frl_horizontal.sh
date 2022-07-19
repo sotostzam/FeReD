@@ -16,15 +16,10 @@ epsilon=1      # Epsilon
 tests=$8       # Allows for snapshots of client data at each round if tests are false
 R=$9           # Number of runs for client and server computations
 
-#echo "Horizontal Federated Reinforcement Learning"
-#echo "Sever parameters: Federated Rounds=$rounds Clients=$clients"
-#echo "Client parameters: Episodes=$ep Tries=$tr Size=$sz"
-#echo " "
-
 for round in `seq 1 $rounds`; do
-  #echo -ne "\rComputing Round $round/$rounds..."
-
-  mkdir -p ./plots/round$round  # Create directory to hold per round figures
+  if [ $tests -eq 0 ]; then
+    mkdir -p ./plots/round$round  # Create directory to hold per round figures
+  fi
   
   # Preprocessing: Randomize initial agent position according to mode
   if [ $mode -eq 1 ]; then
@@ -207,16 +202,20 @@ for round in `seq 1 $rounds`; do
   python3 -c "from utils import write_times; write_times($client_avg_worst, $server_avg, end_of_round=True)"
 
   # Create a snapshot for sync times and convergence for this round
-  python3 -c "from plot import make_snapshot; make_snapshot(round=$round, overall=True)"
+  if [ $tests -eq 0 ]; then
+    python3 -c "from plot import make_snapshot; make_snapshot(round=$round, overall=True)"
+  fi
   
   # Reduce epsilon-greedy value per federated round
   epsilon=$(echo "$epsilon * 0.97" | bc -l | sed 's/^\./0./')
   python3 -c "from utils import update_inputs; update_inputs(epsilon=$epsilon)"
   
-  echo -ne "\r$round"
+  if [ $tests -eq 0 ]; then
+    echo -ne "\r$round"
+  fi
 done
 
-#echo -ne "\nFederated Learning is completed."
-
-# Create and export plots and figures
-python3 plot.py
+# Export plots and figures of experiment
+if [ $tests -eq 1 ]; then
+  python3 plot.py
+fi

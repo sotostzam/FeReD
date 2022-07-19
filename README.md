@@ -11,7 +11,8 @@ FeRed is a web **interface** that allows a user to perform experiments with vari
 The most notable files are the following:
 
 * `/app.js` contains the code for the Node.js back-end server.
-* `/start-api.sh` contains the logic to run experiments in either horizontal or vertical partitioning of data.
+* `/public/data/start-api.sh` contains the logic to run models in horizontal/vertical data partitioning.
+* `/public/data/start-experiments.sh` contains code to run automated experiments with various configurations.
 * `/public/data/q-learning.py` and `/public/data/q-learning.py` contain the Q-learning algorithms.
 
 ## Requirements
@@ -27,6 +28,11 @@ The most notable files are the following:
 2. Install required libraries and tools by running `bash init.sh` in a terminal.
 3. Start API using `node app.js`.
 4. Open [http://localhost:8080/](http://localhost:8080/) in your browser.
+
+### In order to run the automated experiments
+
+1. In a terminal `cd public/data`.
+2. Use `bash start-experiments.sh` to run the code.
 
 ## Team
 

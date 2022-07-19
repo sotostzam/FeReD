@@ -16,15 +16,10 @@ epsilon=0.8    # Epsilon
 tests=$8       # Allows for snapshots of client data at each round if tests are false
 R=$9           # Number of runs for client and server computations
 
-#echo "Vertical Federated Reinforcement Learning"
-#echo "Sever parameters: Federated Rounds=$rounds Clients=$clients"
-#echo "Client parameters: Episodes=$ep Tries=$tr Size=$sz"
-#echo " "
-
 for round in `seq 1 $rounds`; do
-  #echo "Round $round (of $rounds):"
-
-  mkdir -p ./plots/round$round  # Create directory to hold per round figures
+  if [ $tests -eq 0 ]; then
+    mkdir -p ./plots/round$round  # Create directory to hold per round figures
+  fi
 
   if [ $(( (round - 1) % 5 )) -eq 0 ]; then
     python3 -c "from utils import find_next_candidate; find_next_candidate('python')"
@@ -77,7 +72,6 @@ for round in `seq 1 $rounds`; do
 
     # Create a snapshot of the current round
     if [ $tests -eq 0 ] && [ $i -eq $R ]; then
-      #mkdir -p ./results/round_results/round$round
       #cp -a ./federated_data/policies/. ./results/round_results/round$round/python_policies
       #cp -a ./federated_data/layouts/. ./results/round_results/round$round/python_layouts/
       #cp -a ./data/global-qtable-python.csv ./results/round_results/round$round/qtable-python.csv
@@ -120,8 +114,6 @@ for round in `seq 1 $rounds`; do
 
   # Write timings for server and client computations
   python3 -c "from utils import write_times; write_times($round, $client_avg_worst, $server_avg)"
-  
-  #echo "  -> Python: Complete."
 
   #------------------------- SQLite -------------------------#
 
@@ -169,7 +161,6 @@ for round in `seq 1 $rounds`; do
 
     # Create a snapshot of the current round
     if [ $tests -eq 0 ] && [ $i -eq $R ]; then
-      #mkdir -p ./results/round_results/round$round
       #cp -a ./federated_data/policies/. ./results/round_results/round$round/sql_policies
       #cp -a ./federated_data/layouts/. ./results/round_results/round$round/sql_layouts/
       #cp -a ./data/global-qtable-sql.csv ./results/round_results/round$round/qtable-sql.csv
@@ -213,10 +204,10 @@ for round in `seq 1 $rounds`; do
   # Write timings for server and client computations
   python3 -c "from utils import write_times; write_times($client_avg_worst, $server_avg, end_of_round=True)"
 
-  #echo "  -> SQLite: Complete."
-
   # Create a snapshot for sync times and convergence for this round
-  python3 -c "from plot import make_snapshot; make_snapshot(round=$round, overall=True)"
+  if [ $tests -eq 0 ]; then
+    python3 -c "from plot import make_snapshot; make_snapshot(round=$round, overall=True)"
+  fi
   
   # Update epsilon-decreasing value
   if [ $(( (round - 1) % 5 )) -eq 0 ]; then
@@ -226,12 +217,16 @@ for round in `seq 1 $rounds`; do
   fi
   python3 -c "from utils import update_inputs; update_inputs(epsilon=$epsilon)"
   
-  echo -ne "\r$round"
+  if [ $tests -eq 0 ]; then
+    echo -ne "\r$round"
+  fi
 done
 
 # Extract trained models to results
 cp ./data/global-qtable-python.csv ./results/qtable-python.csv
 cp ./data/global-qtable-sql.csv ./results/qtable-sql.csv
 
-# Create and export plots and figures
-python3 plot.py
+# Export plots and figures of experiment
+if [ $tests -eq 1 ]; then
+  python3 plot.py
+fi

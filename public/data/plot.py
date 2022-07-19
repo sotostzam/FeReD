@@ -177,7 +177,7 @@ def generate_maze_layout(size):
 
     plt.savefig("./plots/maze_layout.png", bbox_inches = 'tight')
 
-def plot_tables(initialize=False, round=None):
+def plot_tables(mode=None, round=None):
     p_q_table, p_q_table_annot = extract_policy('results/qtable-python.csv')
     s_q_table, s_q_table_annot = extract_policy('results/qtable-sql.csv')
 
@@ -201,7 +201,9 @@ def plot_tables(initialize=False, round=None):
     # Policy heatmap for Python
     sns.heatmap(p_q_table, linewidth=0.5, linecolor="black", clip_on=False,
                 cmap=enhanced_cmap, cbar=False, annot=p_q_table_annot, fmt='')
-    if initialize:
+    if mode == "experiment":
+        plt.savefig("plots/experiment/policy_heatmap_python.png", bbox_inches = 'tight')
+    elif mode == "initialize":
         plt.savefig("plots/round0/policy_heatmap_python.png", bbox_inches = 'tight')
     else:
         plt.savefig("plots/round" + str(round) + "/policy_heatmap_python.png", bbox_inches = 'tight')
@@ -210,13 +212,15 @@ def plot_tables(initialize=False, round=None):
     # Policy heatmap for SQLite
     sns.heatmap(s_q_table, linewidth=0.5, linecolor="black", clip_on=False,
                 cmap=enhanced_cmap, cbar=False, annot=s_q_table_annot, fmt='')
-    if initialize:
+    if mode == "experiment":
+        plt.savefig("plots/experiment/policy_heatmap_sql.png", bbox_inches = 'tight')
+    elif mode == "initialize":
         plt.savefig("plots/round0/policy_heatmap_sql.png", bbox_inches = 'tight')
     else:
         plt.savefig("plots/round" + str(round) + "/policy_heatmap_sql.png", bbox_inches = 'tight')
     
-def plot_fltimes(initialize=False):
-    if initialize:
+def plot_fltimes(mode=None):
+    if mode == "initialize":
         x = [0, 1]
         lines = np.array([[0, 0, 0, 0, 0], [1, 0, 0, 0, 0]])
         limits = [1, 1]
@@ -248,7 +252,9 @@ def plot_fltimes(initialize=False):
     plt.xlabel("Rounds")
     plt.ylabel("Time (seconds)")
     plt.legend(loc='upper center', fontsize=13, ncol=2)
-    if initialize:
+    if mode == "experiment":
+        plt.savefig("plots/experiment/sync_times_python.png", bbox_inches = 'tight')
+    elif mode == "initialize":
         plt.savefig("plots/round0/sync_times_python.png", bbox_inches = 'tight')
     else:
         plt.savefig("plots/round" + str(int(lines[-1, 0])) + "/sync_times_python.png", bbox_inches = 'tight')
@@ -261,13 +267,15 @@ def plot_fltimes(initialize=False):
     plt.ylabel("Time (seconds)")
     plt.title('SQLite Latency')
     plt.legend(loc='upper center', fontsize=13, ncol=2)
-    if initialize:
+    if mode == "experiment":
+        plt.savefig("plots/experiment/sync_times_sql.png", bbox_inches = 'tight')
+    elif mode == "initialize":
         plt.savefig("plots/round0/sync_times_sql.png", bbox_inches = 'tight')
     else:
         plt.savefig("plots/round" + str(int(lines[-1, 0])) + "/sync_times_sql.png", bbox_inches = 'tight')
 
-def plot_convergence(initialize=False):
-    if initialize:
+def plot_convergence(mode=None):
+    if mode == "initialize":
         python_conv_fixed = np.ones((2, 1)) * -101
         sqlite_conv_fixed = np.ones((2, 1)) * -101
         x = [0, 1]
@@ -288,7 +296,7 @@ def plot_convergence(initialize=False):
 
     plt.plot(x, python_conv_fixed, label = "Python")
     plt.plot(x, sqlite_conv_fixed, label = "SQLite")
-    if initialize:
+    if mode == "initialize":
         plt.xlim([1, 1])
         plt.ylim([-100, 100])
     else:
@@ -297,7 +305,9 @@ def plot_convergence(initialize=False):
     plt.xlabel("Rounds")
     plt.ylabel("Best Reward")
     plt.legend(loc='lower right', fontsize=13)
-    if initialize:
+    if mode == "experiment":
+        plt.savefig("plots/experiment/convergence.png", bbox_inches = 'tight')
+    elif mode == "initialize":
         plt.savefig("plots/round0/convergence.png", bbox_inches = 'tight')
     else:
         plt.savefig("plots/round" + str(int(lines[-1, 0])) + "/convergence.png", bbox_inches = 'tight')
@@ -343,10 +353,14 @@ def make_snapshot(format=None, round=None, mode=None, overall=False):
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         if sys.argv[1] == "initialize":
-            plot_fltimes(initialize=True)
-            plot_convergence(initialize=True)
-            plot_tables(initialize=True)
+            plot_fltimes(mode="initialize")
+            plot_convergence(mode="initialize")
+            plot_tables(mode="initialize")
         if sys.argv[1] == "make_snapshot":
             make_snapshot(sys.argv[2], sys.argv[3], sys.argv[4])
         if sys.argv[1] == "times":
             plot_times()
+    else:
+        plot_fltimes(mode="experiment")
+        plot_convergence(mode="experiment")
+        plot_tables(mode="experiment")

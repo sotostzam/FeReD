@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd public/data
-
 size=$2
 partition=$3
 rounds=$4
@@ -44,6 +42,8 @@ if [ $1 == "apply-model" ]; then
   if [ $tests -eq 0 ]; then
     mkdir -p ./plots/round0              # Create directory to hold initial figures
     python3 plot.py "initialize" $rounds # Create initial plots and figures
+  else
+    mkdir -p ./plots/experiment
   fi
 fi
 
@@ -51,12 +51,16 @@ if [ $1 == "run-model" ]; then
   if [ $partition == "horizontal" ]; then
     if [ $tests -eq 1 ]; then
       bash frl_horizontal.sh $clients $rounds $mode $episodes $tries $size $learning_rate $tests 100
+      mkdir -p "./experiments/HFRL_r${rounds}_s${size}_c${clients}_e${episodes}_t${tries}_m${mode}"
+      mv ./plots/experiment $_
     else
       bash frl_horizontal.sh $clients $rounds $mode $episodes $tries $size $learning_rate $tests 1
     fi
   else
     if [ $tests -eq 1 ]; then
       bash frl_vertical.sh $clients $rounds $par_size $episodes $tries $size $learning_rate $tests 100
+      mkdir -p "./experiments/VFRL_r${rounds}_s${size}_c${clients}_e${episodes}_t${tries}_p${par_size}"
+      mv ./plots/experiment $_
     else
       bash frl_vertical.sh $clients $rounds $par_size $episodes $tries $size $learning_rate $tests 1
     fi
