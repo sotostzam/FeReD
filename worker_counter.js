@@ -5,6 +5,7 @@ let current_round;
 
 function start_loop() {
     if (current_round == total_rounds) {
+        process.send(JSON.stringify({command: "completed"}));
         clearInterval(intervalID);
         intervalID = null;
     } else {

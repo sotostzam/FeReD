@@ -16,16 +16,15 @@ socket.addEventListener('message', function (event) {
     switch (msg.status) {
         case 'ready':
             current_round = 0;
+            computed_rounds = 0;
+            updateFigures();
+            document.getElementById("computed_rounds_span").innerHTML = `${computed_rounds}`;
             document.getElementById("pseudocode-round").innerHTML   =`t = 1 until ${document.getElementById("f_rounds").value}`;
             document.getElementById("pseudocode-client").innerHTML  =`i = 1 until ${document.getElementById("clients").value}`;
             document.getElementById("pseudocode-episode").innerHTML =`i = 1 until ${document.getElementById("episodes").value}`;
             document.getElementById("pseudocode-tries").innerHTML   =`i = 1 until ${document.getElementById("tries").value}`;
-            document.getElementById("maze_layout").src       = plot_path + "/maze_layout.png";
-            document.getElementById("heatmap_python").src    = plot_path + `/round${current_round}/policy_heatmap_python.png`;
-            document.getElementById("heatmap_sql").src       = plot_path + `/round${current_round}/policy_heatmap_sql.png`;
-            document.getElementById("sync_times_python").src = plot_path + `/round${current_round}/sync_times_python.png`;
-            document.getElementById("sync_times_sql").src    = plot_path + `/round${current_round}/sync_times_sql.png`;
-            document.getElementById("convergence").src       = plot_path + `/round${current_round}/convergence.png`;
+            document.getElementById("maze_layout").src = plot_path + "/maze_layout.png";
+            document.getElementById("apply-btn").disabled = false;
             alert("Model saved successfully.");
             break;
         case 'completed_round':
@@ -42,6 +41,10 @@ socket.addEventListener('message', function (event) {
         case 'show_next_round':
             current_round++;
             updateFigures();
+            break;
+        case 'counter_complete':
+            document.getElementById("start-btn").disabled = false;
+            document.getElementById("stop-btn").disabled = true;
             break;
     }
 });
@@ -106,6 +109,7 @@ window.onload = function () {
     }
 
     document.getElementById("apply-btn").onclick = function () {
+        document.getElementById("apply-btn").disabled = "disabled";
         let parameters = {
             command: "apply",
             parameters: {
@@ -153,7 +157,8 @@ window.onload = function () {
 };
 
 function checkButtons() {
-    if (current_round == document.getElementById("f_rounds").value || current_round == computed_rounds) {
+    if (current_round == document.getElementById("f_rounds").value || (current_round == computed_rounds) &&
+       (computed_rounds > 0)) {
         document.getElementById("next-btn").disabled = true;
     } else if (current_round == 1) {
         document.getElementById("prev-btn").disabled  = true;
@@ -161,13 +166,17 @@ function checkButtons() {
     } else if (current_round == 0) {
         document.getElementById("reset-btn").disabled = true;
         document.getElementById("prev-btn").disabled  = true;
-        document.getElementById("next-btn").disabled  = false;
+        if (computed_rounds == 0) {
+            document.getElementById("next-btn").disabled  = true;
+        } else {
+            document.getElementById("next-btn").disabled  = false;
+        };
     } else {
         console.log(document.getElementById("prev-btn").disabled);
         if (document.getElementById("next-btn").disabled)  { document.getElementById("next-btn").disabled  = false; };
         if (document.getElementById("prev-btn").disabled)  { document.getElementById("prev-btn").disabled  = false; };
         if (document.getElementById("reset-btn").disabled) { document.getElementById("reset-btn").disabled  = false; };
-    }
+    };
 };
 
 function updateFigures() {
