@@ -121,6 +121,7 @@ window.onload = function () {
                 episodes:          document.getElementById("episodes").value,
                 tries:             document.getElementById("tries").value,
                 learning_rate:     document.getElementById("learning_rate").value,
+                epsilon:           document.getElementById("egreedy").value,
                 random_pos:        document.getElementById("random_pos").value
             }
         };

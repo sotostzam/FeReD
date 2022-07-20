@@ -8,8 +8,9 @@ par_size=$6
 episodes=$7
 tries=$8
 learning_rate=$9
-mode=${10}
-tests=${11}
+egreedy=${10}
+mode=${11}
+tests=${12}
 
 if [ $1 == "apply-model" ]; then
   sh clean.sh    # Clean old files if they exist
@@ -17,8 +18,14 @@ if [ $1 == "apply-model" ]; then
   # Initialize default plots and run models
   if [ $partition == "horizontal" ]; then
     # Initialize required files for the horizontal partitioning
-    python3 -c "from utils import prepare; prepare(partition='horizontal')" $episodes $tries $size $learning_rate 1
-    python3 -c "from plot import generate_maze_layout; generate_maze_layout($size)"
+    if [ $tests -eq 2 ]; then
+      python3 -c "from utils import prepare; prepare(partition='horizontal')" $episodes $tries $size $learning_rate 0
+    else
+      python3 -c "from utils import prepare; prepare(partition='horizontal')" $episodes $tries $size $learning_rate $egreedy
+    fi
+    if [ $tests -eq 0 ]; then
+      python3 -c "from plot import generate_maze_layout; generate_maze_layout($size)"
+    fi
     cp ./data/qtable.csv ./results/qtable-sql.csv                  # Create initial Q-table for SQLite
     cp ./data/qtable.csv ./results/qtable-python.csv               # Create initial Q-table for Python
     cp ./data/agent.csv ./data/agent-fixed.csv                     # Create backup for fixed agent position used in computing convergence
@@ -26,8 +33,10 @@ if [ $1 == "apply-model" ]; then
     touch ./results/convergence.txt                                # Create file containing convergence rate values
   else
     # Initialize required files for the vertical partitioning
-    python3 -c "from utils import prepare; prepare(partition='vertical')" $episodes $tries $size $learning_rate 0.8
-    python3 -c "from plot import generate_maze_layout; generate_maze_layout($size)"
+    python3 -c "from utils import prepare; prepare(partition='vertical')" $episodes $tries $size $learning_rate $egreedy
+    if [ $tests -eq 0 ]; then
+      python3 -c "from plot import generate_maze_layout; generate_maze_layout($size)"
+    fi
     cp ./data/global-qtable.csv ./data/global-qtable-python.csv    # Create global q_table for python
     cp ./data/global-qtable.csv ./data/global-qtable-sql.csv       # Create global q_table for sql
     cp ./data/global-qtable.csv ./results/qtable-python.csv        # Copy initial Q-table for Python for initial visualization
@@ -50,19 +59,23 @@ fi
 if [ $1 == "run-model" ]; then
   if [ $partition == "horizontal" ]; then
     if [ $tests -eq 1 ]; then
-      bash frl_horizontal.sh $clients $rounds $mode $episodes $tries $size $learning_rate $tests 100
-      mkdir -p "./experiments/HFRL_r${rounds}_s${size}_c${clients}_e${episodes}_t${tries}_m${mode}"
-      mv ./plots/experiment $_
+      bash frl_horizontal.sh $clients $rounds $mode $episodes $tries $size $learning_rate 1 $tests 100
+      if [ $(ls -A "./plots/experiment" | wc -l) -ne 0 ]; then
+        mkdir -p "./experiments/HFRL_r${rounds}_s${size}_c${clients}_e${episodes}_t${tries}_m${mode}"
+      fi
+      mv ./plots/experiment/* $_
     else
-      bash frl_horizontal.sh $clients $rounds $mode $episodes $tries $size $learning_rate $tests 1
+      bash frl_horizontal.sh $clients $rounds $mode $episodes $tries $size $learning_rate $egreedy $tests 1
     fi
   else
     if [ $tests -eq 1 ]; then
-      bash frl_vertical.sh $clients $rounds $par_size $episodes $tries $size $learning_rate $tests 100
-      mkdir -p "./experiments/VFRL_r${rounds}_s${size}_c${clients}_e${episodes}_t${tries}_p${par_size}"
-      mv ./plots/experiment $_
+      bash frl_vertical.sh $clients $rounds $par_size $episodes $tries $size $learning_rate 0.8 $tests 100
+      if [ $(ls -A "./plots/experiment" | wc -l) -ne 0 ]; then
+        mkdir -p "./experiments/VFRL_r${rounds}_s${size}_c${clients}_e${episodes}_t${tries}_p${par_size}"
+      fi
+      mv ./plots/experiment/* $_
     else
-      bash frl_vertical.sh $clients $rounds $par_size $episodes $tries $size $learning_rate $tests 1
+      bash frl_vertical.sh $clients $rounds $par_size $episodes $tries $size $learning_rate $egreedy $tests 1
     fi
   fi
 fi

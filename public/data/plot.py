@@ -181,19 +181,6 @@ def plot_tables(mode=None, round=None):
     p_q_table, p_q_table_annot = extract_policy('results/qtable-python.csv')
     s_q_table, s_q_table_annot = extract_policy('results/qtable-sql.csv')
 
-    # Compare the results from the implementations
-    # with open('results/qtable-python.csv') as tb1, open('results/qtable-sql.csv') as tb2:
-    #     tb1_rows = list(csv.reader(tb1, delimiter=";"))
-    #     tb2_rows = list(csv.reader(tb2, delimiter=";"))
-    #     equal = True
-    #     index = 0
-    #     while equal is True and index < len(tb1_rows):
-    #         # Ensure that values are the same within 5 decimal digits
-    #         if not math.isclose(float(tb1_rows[index][-1]), float(tb2_rows[index][-1]), rel_tol=0.00001):
-    #             equal = False
-    #         index += 1
-    #     print('Python and SQLite results are equal:', equal)
-
     # Plot best policy
     fig = plt.figure(figsize=(4, 4))
     fig.tight_layout()

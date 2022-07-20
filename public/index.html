@@ -35,15 +35,15 @@
                             </div>
                             <div class="parameters-row">
                                 <label for="f_rounds">Federated rounds:</label>
-                                <input type="text" id="f_rounds" name="name" value="100">
+                                <input type="text" id="f_rounds" value="100">
                             </div>
                             <div class="parameters-row">
                                 <label for="clients">Clients:</label>
-                                <input type="text" id="clients" name="name" value="5">
+                                <input type="text" id="clients" value="5">
                             </div>
                             <div class="parameters-row">
                                 <label for="partition_size">Partition size:</label>
-                                <input type="text" id="partition_size" name="name" value="5" disabled>
+                                <input type="text" id="partition_size" value="5" disabled>
                             </div>
                         </div>
                         <br>
@@ -51,22 +51,19 @@
                             <h3>Learning Parameters</h3>
                             <div class="parameters-row">
                                 <label for="episodes">Local episodes:</label>
-                                <input type="text" id="episodes" name="name" value="20">
+                                <input type="text" id="episodes" value="20">
                             </div>
                             <div class="parameters-row">
                                 <label for="tries">Episode length:</label>
-                                <input type="text" id="tries" name="name" value="200">
+                                <input type="text" id="tries" value="200">
                             </div>
                             <div class="parameters-row">
                                 <label for="learning_rate">Learning rate:</label>
-                                <input type="text" id="learning_rate" name="name" value="0.05">
+                                <input type="text" id="learning_rate" value="0.05">
                             </div>
                             <div class="parameters-row">
-                                <label for="egreedy">ε-greedy per round:</label>
-                                <select id="egreedy">
-                                    <option value="1" selected="selected">on</option>
-                                    <option value="0">off</option>
-                                </select>
+                                <label for="egreedy">Initial ε-greedy:</label>
+                                <input type="text" id="egreedy" value="1">
                             </div>
                             <div class="parameters-row">
                                 <label for="random_pos">Randomized position:</label>

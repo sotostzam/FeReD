@@ -10,11 +10,11 @@ ep=$4          # Number of episodes
 tr=$5          # Number of tries per episode
 sz=$6          # Maze size
 lr=$7          # Learning rate
-epsilon=1      # Epsilon
+epsilon=$8     # Epsilon
 
 # Testing Parameters
-tests=$8       # Allows for snapshots of client data at each round if tests are false
-R=$9           # Number of runs for client and server computations
+tests=$9       # Allows for snapshots of client data at each round if tests are false
+R=${10}        # Number of runs for client and server computations
 
 for round in `seq 1 $rounds`; do
   if [ $tests -eq 0 ]; then

@@ -15,6 +15,7 @@ wss.on('connection', function connection(ws) {
     
     var counter_worker = fork("worker_counter.js"); 
     counter_worker.on('message', message => {
+        msg = JSON.parse(message);
         switch (msg.command) {
             case 'advance_round':
                 ws.send(JSON.stringify({status: "show_next_round"}));
@@ -72,7 +73,7 @@ wss.on('connection', function connection(ws) {
                        `${msg.parameters.federated_rounds} ${msg.parameters.clients} ` + 
                        `${msg.parameters.partition_size} ${msg.parameters.episodes} ` +
                        `${msg.parameters.tries} ${msg.parameters.learning_rate} ` +
-                       `${msg.parameters.random_pos} 0`;
+                       `${msg.parameters.epsilon} ${msg.parameters.random_pos} 0`;
                        
                 if (apply_worker != null) { process.kill(-apply_worker.pid); };
                 if (run_worker != null)   { process.kill(-run_worker.pid); };
@@ -84,6 +85,7 @@ wss.on('connection', function connection(ws) {
                 break;
             case 'stop':
                 counter_worker.send(JSON.stringify({command: "stop"}));
+                break;
         };
     });
     

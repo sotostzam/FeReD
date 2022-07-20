@@ -3,6 +3,7 @@ import csv
 import numpy as np
 import random
 import os
+import math
                     
 # Export matrix to csv
 def export_to_csv(location, matrix):
@@ -233,3 +234,20 @@ def write_times(*args, end_of_round=False):
                 f.write(str(item) + "\n")
             else:
                 f.write(str(item) + "\t")
+
+# Compare the results from the implementations
+def compare_equality():
+    with open('results/qtable-python.csv') as tb1, open('results/qtable-sql.csv') as tb2:
+        tb1_rows = list(csv.reader(tb1, delimiter=";"))
+        tb2_rows = list(csv.reader(tb2, delimiter=";"))
+        equal = True
+        index = 0
+        while equal is True and index < len(tb1_rows):
+            # Ensure that values are the same within 5 decimal digits
+            if not math.isclose(float(tb1_rows[index][-1]), float(tb2_rows[index][-1]), rel_tol=0.00001):
+                equal = False
+            index += 1
+        if equal:
+            print('Equality test: Success')
+        else:
+            print('Equality test: Failed')

@@ -11,4 +11,3 @@ mkdir -p federated_data/convergence_vals
 mkdir -p federated_data/global_tables
 mkdir -p federated_data/partitions
 mkdir -p federated_data/layouts
-
