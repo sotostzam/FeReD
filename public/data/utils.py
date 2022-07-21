@@ -4,6 +4,7 @@ import numpy as np
 import random
 import os
 import math
+import subprocess
                     
 # Export matrix to csv
 def export_to_csv(location, matrix):
@@ -143,7 +144,6 @@ def find_next_candidate(format):
         explored_states.append(previous_candidate)
         with open("data/explored-states-" + format + ".csv", "a") as f:
             f.write(str(previous_candidate[0]) + ";" + str(previous_candidate[1]) + "\n")
-            print("Added candidate", previous_candidate, "to explored states")
         
     # Find next candidate state
     candidate = None
@@ -251,3 +251,63 @@ def compare_equality():
             print('Equality test: Success')
         else:
             print('Equality test: Failed')
+
+# Find worse convergence value from clients
+def compute_convergence(operation='compute', round=None, end_of_round=False):
+    if operation == "compute":
+        directory = "federated_data/rewards"
+        vals = []
+        for filename in os.listdir(directory):
+            f = os.path.join(directory, filename)
+            with open(f) as ff:
+                val = list(csv.reader(ff, delimiter=";"))
+                vals.append(float(val[0][0]))
+                        
+        with open('federated_data/convergence_vals/convergence.txt', 'w') as f:
+            f.write(str(vals[0]) + "\n")
+    
+    if operation == "average":
+        directory = "federated_data/convergence_vals"
+        vals = []
+        for filename in os.listdir(directory):
+            f = os.path.join(directory, filename)
+            with open(f) as ff:
+                val = list(csv.reader(ff, delimiter=";"))
+                vals.append(float(val[0][0]))
+
+        average_val = sum(vals) / len(vals)
+
+        with open('results/convergence.txt', 'a') as f:
+            if end_of_round:
+                f.write(str(average_val) + "\n")
+            elif round is not None:
+                f.write(str(round) + "\t" + str(average_val) + "\t")
+            else:
+                f.write(str(average_val) + "\t")
+                
+def fixed_compute(lang):
+    inputs = read_inputs("data/inputs.csv")
+    update_inputs(episodes=1, tries=200, epsilon=0)
+
+    if lang == "python":
+        process = subprocess.Popen('python3 q-learning.py', shell=True)
+        process.wait()
+    if lang == "sql":
+        process = subprocess.Popen('sh ./execute_sqlite.sh', shell=True)
+        process.wait()
+
+    update_inputs(episodes=inputs[1], tries=inputs[2], epsilon=inputs[-1])
+    compute_convergence(operation='compute')
+    
+def write_data(current_round, client_avg_worst, server_avg, end_of_round=False, vertical=False):
+    if end_of_round:
+        epsilon_val = read_inputs("data/inputs.csv")[-1]
+        compute_convergence(operation='average', round=current_round, end_of_round=True)
+        write_times(client_avg_worst, server_avg, end_of_round=True)
+        if vertical and ((current_round - 1) % 5 ) == 0:
+            update_inputs(epsilon = 0.8)
+        elif epsilon_val > 0.01:
+            update_inputs(epsilon = epsilon_val * 0.97)
+    else:
+        compute_convergence(operation='average', round=current_round)
+        write_times(current_round, client_avg_worst, server_avg)

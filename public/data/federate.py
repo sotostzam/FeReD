@@ -1,8 +1,6 @@
 import csv
 import os
-import time
-import numpy as np
-from utils import matrix_from_csv, export_to_csv, read_from_csv, write_times, update_inputs, find_next_candidate
+from utils import matrix_from_csv, export_to_csv, read_from_csv
 
 # Compute average federated table from clients
 def aggregate(format):
@@ -60,7 +58,7 @@ def aggregate_vertical(format):
     updates = {}
     for _ , model in client_partitions.items():
         client_qtable = model[0]
-        offset_i, offset_j, par_size = model[1]
+        offset_i, offset_j, _ = model[1]
         for i in range(client_qtable.shape[0]):
             for j in range(client_qtable.shape[1]):
                 maze_pos_x = i + offset_i  # Map to position in global model
@@ -91,36 +89,3 @@ def aggregate_vertical(format):
     
     # Update global federated model
     export_to_csv("data/global-qtable-" + format + ".csv", q_table)
-
-# Find worse convergence value from clients
-def compute_convergence(operation='compute', round=None, end_of_round=False):
-    if operation == "compute":
-        directory = "federated_data/rewards"
-        vals = []
-        for filename in os.listdir(directory):
-            f = os.path.join(directory, filename)
-            with open(f) as ff:
-                val = list(csv.reader(ff, delimiter=";"))
-                vals.append(float(val[0][0]))
-                        
-        with open('federated_data/convergence_vals/convergence.txt', 'w') as f:
-            f.write(str(vals[0]) + "\n")
-    
-    if operation == "average":
-        directory = "federated_data/convergence_vals"
-        vals = []
-        for filename in os.listdir(directory):
-            f = os.path.join(directory, filename)
-            with open(f) as ff:
-                val = list(csv.reader(ff, delimiter=";"))
-                vals.append(float(val[0][0]))
-
-        average_val = sum(vals) / len(vals)
-
-        with open('results/convergence.txt', 'a') as f:
-            if end_of_round:
-                f.write(str(average_val) + "\n")
-            elif round is not None:
-                f.write(str(round) + "\t" + str(average_val) + "\t")
-            else:
-                f.write(str(average_val) + "\t")

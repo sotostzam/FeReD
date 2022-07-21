@@ -10,11 +10,10 @@ ep=$4          # Number of episodes
 tr=$5          # Number of tries per episode
 sz=$6          # Maze size
 lr=$7          # Learning rate
-epsilon=$8     # Epsilon
 
 # Testing Parameters
-tests=$9       # Allows for snapshots of client data at each round if tests are false
-R=${10}        # Number of runs for client and server computations
+tests=$8       # Allows for snapshots of client data at each round if tests are false
+R=$9           # Number of runs for client and server computations
 
 for round in `seq 1 $rounds`; do
   if [ $tests -eq 0 ]; then
@@ -72,9 +71,6 @@ for round in `seq 1 $rounds`; do
 
     # Create a snapshot of the current round
     if [ $tests -eq 0 ] && [ $i -eq $R ]; then
-      #cp -a ./federated_data/policies/. ./results/round_results/round$round/python_policies
-      #cp -a ./federated_data/layouts/. ./results/round_results/round$round/python_layouts/
-      #cp -a ./data/global-qtable-python.csv ./results/round_results/round$round/qtable-python.csv
       python3 plot.py "make_snapshot" "python" "$round" "vertical"
       rm -r ./federated_data/partitions/*
     fi
@@ -88,10 +84,7 @@ for round in `seq 1 $rounds`; do
     cp ./data/global-goal.csv ./data/goal.csv
     cp ./data/global-rewards.csv ./data/rewards.csv
     cp ./data/global-agent.csv ./data/agent.csv
-    python3 -c "from utils import update_inputs; update_inputs(episodes=1, tries=200, epsilon=0)"
-    python3 q-learning.py
-    python3 -c "from utils import update_inputs; update_inputs(episodes=$ep, tries=$tr, epsilon=$epsilon)"
-    python3 -c "from federate import compute_convergence; compute_convergence(operation='compute')"
+    python3 -c "from utils import fixed_compute; fixed_compute('python')"
     mv ./federated_data/convergence_vals/convergence.txt ./federated_data/convergence_vals/convergence$i.txt
 
     # Clean result files
@@ -108,12 +101,9 @@ for round in `seq 1 $rounds`; do
   client_avg_worst=$(echo "$client_avg_worst/$R" | bc -l | sed 's/^\./0./')
   server_avg=$(echo "($server_avg/$R)" | bc -l | sed 's/^\./0./')
 
-  # Compute average convergence
-  python3 -c "from federate import compute_convergence; compute_convergence(operation='average', round=$round)"
+  # Write data for average convergence, preprocessing and client computations
+  python3 -c "from utils import write_data; write_data($round, $client_avg_worst, $server_avg)"
   rm -r ./federated_data/convergence_vals/*
-
-  # Write timings for server and client computations
-  python3 -c "from utils import write_times; write_times($round, $client_avg_worst, $server_avg)"
 
   #------------------------- SQLite -------------------------#
 
@@ -161,9 +151,6 @@ for round in `seq 1 $rounds`; do
 
     # Create a snapshot of the current round
     if [ $tests -eq 0 ] && [ $i -eq $R ]; then
-      #cp -a ./federated_data/policies/. ./results/round_results/round$round/sql_policies
-      #cp -a ./federated_data/layouts/. ./results/round_results/round$round/sql_layouts/
-      #cp -a ./data/global-qtable-sql.csv ./results/round_results/round$round/qtable-sql.csv
       python3 plot.py "make_snapshot" "sql" "$round" "vertical"
       rm -r ./federated_data/partitions/*
     fi
@@ -177,10 +164,7 @@ for round in `seq 1 $rounds`; do
     cp ./data/global-goal.csv ./data/goal.csv
     cp ./data/global-rewards.csv ./data/rewards.csv
     cp ./data/global-agent.csv ./data/agent.csv
-    python3 -c "from utils import update_inputs; update_inputs(episodes=1, tries=200, epsilon=0)"
-    sh ./execute_sqlite.sh
-    python3 -c "from utils import update_inputs; update_inputs(episodes=$ep, tries=$tr, epsilon=$epsilon)"
-    python3 -c "from federate import compute_convergence; compute_convergence(operation='compute')"
+    python3 -c "from utils import fixed_compute; fixed_compute('sql')"
     mv ./federated_data/convergence_vals/convergence.txt ./federated_data/convergence_vals/convergence$i.txt
 
     # Clean result files
@@ -197,26 +181,15 @@ for round in `seq 1 $rounds`; do
   client_avg_worst=$(echo "$client_avg_worst/$R" | bc -l | sed 's/^\./0./')
   server_avg=$(echo "($server_avg/$R)" | bc -l | sed 's/^\./0./')
 
-  # Compute average convergence
-  python3 -c "from federate import compute_convergence; compute_convergence(operation='average', round=$round, end_of_round=True)"
-  rm -r ./federated_data/convergence_vals/*
-
-  # Write timings for server and client computations
-  python3 -c "from utils import write_times; write_times($client_avg_worst, $server_avg, end_of_round=True)"
+  # Write data for average convergence, preprocessing, client computations and reduce greedy value
+  python3 -c "from utils import write_data; write_data($round, $client_avg_worst, $server_avg, end_of_round=True, vertical=True)"
 
   # Create a snapshot for sync times and convergence for this round
   if [ $tests -eq 0 ]; then
     python3 -c "from plot import make_snapshot; make_snapshot(round=$round, overall=True)"
   fi
-  
-  # Update epsilon-decreasing value
-  if [ $(( (round - 1) % 5 )) -eq 0 ]; then
-    epsilon=0.8
-  else
-    epsilon=$(echo "$epsilon * 0.97" | bc -l | sed 's/^\./0./')
-  fi
-  python3 -c "from utils import update_inputs; update_inputs(epsilon=$epsilon)"
-  
+
+  # Output current computed round
   if [ $tests -eq 0 ]; then
     echo -ne "\r$round"
   fi

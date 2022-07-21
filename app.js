@@ -10,8 +10,7 @@ wss.on('connection', function connection(ws) {
     var args = null;
     const { spawn } = require('node:child_process');
     const { fork }  = require('node:child_process');
-    var apply_worker = null;
-    var run_worker   = null;
+    var model_worker   = null;
     
     var counter_worker = fork("worker_counter.js"); 
     counter_worker.on('message', message => {
@@ -26,42 +25,28 @@ wss.on('connection', function connection(ws) {
         };
     });
     
-    function apply_model(args) {
-        apply_worker = spawn(`cd public/data; bash start-api.sh "apply-model" ${args}`, [], { shell: true,  detached: true });
-        apply_worker.stdout.on('data', (data) => {
-            console.log(`stdout: ${data}`);
-        });
-        apply_worker.stderr.on('data', (data) => {
-            console.log(`stderr: ${data}`);
-        });
-        apply_worker.on('error', (err) => {
-            console.log(`error: ${err}`);
-        });
-        apply_worker.on('close', (code) => {
-            if (code == 0) {
-                ws.send(JSON.stringify({status: "ready"}));
-            };
-            apply_worker = null;
-            run_model(args);
-        });
-    };
-    
     function run_model(args) {
-        run_worker = spawn(`cd public/data; bash start-api.sh "run-model" ${args}`, [], { shell: true, detached: true });
-        run_worker.stdout.on('data', (data) => {
+        model_worker = spawn(`cd public/data; bash start-api.sh ${args}`, [], { shell: true, detached: true });
+        model_worker.stdout.on('data', (data) => {
             let completed_round = parseInt(data);
-            ws.send(JSON.stringify({status: "completed_round", round: completed_round}));
-            counter_worker.send(JSON.stringify({command: "computed_rounds", computed_rounds: completed_round}));
+            if (completed_round == 0) {
+                ws.send(JSON.stringify({status: "ready"}));
+            } else {
+                ws.send(JSON.stringify({status: "completed_round", round: completed_round}));
+                counter_worker.send(JSON.stringify({command: "computed_rounds", computed_rounds: completed_round}));
+            };
         });
-        run_worker.stderr.on('data', (data) => {
+        model_worker.stderr.on('data', (data) => {
             console.log(`stderr: ${data}`);
         });
-        run_worker.on('error', (err) => {
+        model_worker.on('error', (err) => {
             console.log(`error: ${err}`);
         });
-        run_worker.on('close', (code) => {
-            run_worker = null;
-            return true
+        model_worker.on('close', (code) => {
+            if (code != 0) {
+                console.log(`Child process error code: ${code}`);
+            };
+            model_worker = null;
         });
     };
 
@@ -75,10 +60,9 @@ wss.on('connection', function connection(ws) {
                        `${msg.parameters.tries} ${msg.parameters.learning_rate} ` +
                        `${msg.parameters.epsilon} ${msg.parameters.random_pos} 0`;
                        
-                if (apply_worker != null) { process.kill(-apply_worker.pid); };
-                if (run_worker != null)   { process.kill(-run_worker.pid); };
+                if (model_worker != null)   { process.kill(-model_worker.pid); };
                 
-                apply_model(args);
+                run_model(args);
                 break;
             case 'start':
                 counter_worker.send(JSON.stringify({command: "start", current_round: msg.current_round, total_rounds: msg.total_rounds}));

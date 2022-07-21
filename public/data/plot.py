@@ -1,9 +1,7 @@
-from operator import is_
 import sys
 import csv
 import os
 import math
-from xml.sax import xmlreader
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 from matplotlib import cm
