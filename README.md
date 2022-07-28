@@ -34,6 +34,23 @@ The most notable files are the following:
 1. In a terminal `cd public/data`.
 2. Use `bash start-experiments.sh` to run the code.
 
+## Citation
+
+If you are using this source code in your research please cite:
+
+* Sotirios Tzamaras, Radu Ciucanu, Marta Soare, Sihem Amer-Yahia. **FeReD: Federated Reinforcement Learning in the DBMS**. *Proceedings of the 31st ACM International Conference on Information and Knowledge Management (CIKM)*.
+
+[[video](https://www.youtube.com/watch?v=2kRIu_C5RZA)]
+
+```bib
+@inproceedings{TzamarasCSA22,
+author    = {Tzamaras, S. and Ciucanu, R. and Soare, M. and {Amer-Yahia}, S.},
+title     = {{FeReD: Federated Reinforcement Learning in the DBMS}},
+booktitle = {{Proceedings of the 31st ACM International Conference on Information and Knowledge Management (CIKM), Demo Track, to appear}},
+year      = {2022}
+}
+```
+
 ## Team
 
 ![sotiris](/public/assets/sotiris.png) | ![radu](/public/assets/radu.png) | ![marta](/public/assets/marta.jpg) | ![sihem](/public/assets/sihem.jpg)
