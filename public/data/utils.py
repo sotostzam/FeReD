@@ -161,8 +161,10 @@ def find_next_candidate(format):
     
     with open("data/candidate-" + format + ".csv", "w") as f:
         f.write(str(candidate[0]) + ";" + str(candidate[1]))
+        
+    print(format, candidate, qtable[candidate[0],candidate[1]])
 
-    update_inputs(epsilon_exact=0.8)
+    update_inputs(epsilon=0.5)
 
 def extract_partition(size, format):
     # Load global parameters into memory
@@ -200,7 +202,13 @@ def extract_partition(size, format):
         rewards[global_goal[0], global_goal[1]] = -1
     rewards_partition = rewards[partition[0]:partition[0] + size, partition[1]:partition[1] + size]
     local_goal = [candidate[0] - partition[0], candidate[1] - partition[1]]
-    rewards_partition[local_goal[0], local_goal[1]] = 100
+    #rewards_partition[local_goal[0], local_goal[1]] = 100
+    if candidate != global_goal:
+    	print(format, 'Candidate:', candidate, qtable[candidate[0], candidate[1]])
+    	rewards_partition[local_goal[0], local_goal[1]] = max(qtable[candidate[0], candidate[1]])
+    else:
+    	rewards_partition[local_goal[0], local_goal[1]] = 100
+    	print(format, 'Candidate:', candidate, qtable[candidate[0], candidate[1]], 100)
 
     export_to_csv("results/qtable-" + format + ".csv", qtable_partition)
     export_to_csv("data/rewards.csv", rewards_partition)
@@ -305,7 +313,7 @@ def write_data(current_round, client_avg_worst, server_avg, end_of_round=False, 
         compute_convergence(operation='average', round=current_round, end_of_round=True)
         write_times(client_avg_worst, server_avg, end_of_round=True)
         if vertical and ((current_round - 1) % 5 ) == 0:
-            update_inputs(epsilon = 0.8)
+            update_inputs(epsilon = 0.5)
         elif epsilon_val > 0.01:
             update_inputs(epsilon = epsilon_val * 0.97)
     else:

@@ -1,7 +1,23 @@
 import csv
 import os
 from utils import matrix_from_csv, export_to_csv, read_from_csv
+import numpy as np
 
+# Manhattan distance of two points
+def man_distance(point1, point2):
+    return abs(point1[0]-point2[0])+abs(point1[1]-point2[1])
+       
+# Derivative of the sigmoid function 
+def sig_deriv(z):
+    a = 2
+    b = 1.5
+    sig = a / (1 + np.exp(-b*z))
+    return sig * (a - sig)
+
+# Normalization function
+def normalize_range(current_min, current_max, target_min, target_max, value):
+    return ((value - current_min) / (current_max - current_min)) * (target_max - target_min) + target_min   
+        
 # Compute average federated table from clients
 def aggregate(format):
 
@@ -63,7 +79,7 @@ def aggregate_vertical(format):
             for j in range(client_qtable.shape[1]):
                 maze_pos_x = i + offset_i  # Map to position in global model
                 maze_pos_y = j + offset_j  # Map to position in global model
-                if not explored_states or [maze_pos_x, maze_pos_y] not in explored_states:
+                if [maze_pos_x, maze_pos_y] != candidate and (not explored_states or [maze_pos_x, maze_pos_y] not in explored_states):
                     for k in range(client_qtable.shape[2]):
                         if client_qtable[i,j,k] != q_table[maze_pos_x, maze_pos_y, k]:
                             if (maze_pos_x, maze_pos_y, k) not in updates:
@@ -75,17 +91,19 @@ def aggregate_vertical(format):
     for pos, values in updates.items():
         updates[pos] = sum(values) / len(values)
 
+    # Normalize parameters
     target_min = 0
-    target_max = max(q_table[candidate[0], candidate[1]]) - 0.001 * max(q_table[candidate[0], candidate[1]])
+    target_max = max(q_table[candidate[0], candidate[1]]) - 0.01 * max(q_table[candidate[0], candidate[1]])
     if target_max == 0:
         target_max = 100
     update_min = min(updates.values())
     update_max = max(updates.values())
+    
+    # Update weighted Q-values with distance and activation
     for pos, values in updates.items():
-        #q_table[pos[0],pos[1],pos[2]] = sum(values) / len(values)
-        #temp = sum(values) / len(values)
-        new_val = ((values - update_min)/(update_max - update_min)) * (target_max - target_min) + target_min
-        q_table[pos[0],pos[1],pos[2]] = new_val
+        new_val = normalize_range(update_min, update_max, target_min, target_max, values)
+        multiplier = sig_deriv(man_distance(pos, candidate) - 1)
+        q_table[pos[0],pos[1],pos[2]] = new_val * multiplier
     
     # Update global federated model
     export_to_csv("data/global-qtable-" + format + ".csv", q_table)
