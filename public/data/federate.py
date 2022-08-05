@@ -1,22 +1,6 @@
 import csv
 import os
-from utils import matrix_from_csv, export_to_csv, read_from_csv
-import numpy as np
-
-# Manhattan distance of two points
-def man_distance(point1, point2):
-    return abs(point1[0]-point2[0])+abs(point1[1]-point2[1])
-       
-# Derivative of the sigmoid function 
-def sig_deriv(z):
-    a = 2
-    b = 1.5
-    sig = a / (1 + np.exp(-b*z))
-    return sig * (a - sig)
-
-# Normalization function
-def normalize_range(current_min, current_max, target_min, target_max, value):
-    return ((value - current_min) / (current_max - current_min)) * (target_max - target_min) + target_min   
+from utils import matrix_from_csv, export_to_csv, read_from_csv, man_distance, sig_deriv, normalize_range
         
 # Compute average federated table from clients
 def aggregate(format):

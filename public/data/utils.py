@@ -5,6 +5,21 @@ import random
 import os
 import math
 import subprocess
+
+# Manhattan distance of two points
+def man_distance(point1, point2):
+    return abs(point1[0] - point2[0]) + abs(point1[1] - point2[1])
+
+# Helper function to map one range to another        
+def normalize_range(current_min, current_max, target_min, target_max, value):
+    return ((value - current_min) / (current_max - current_min)) * (target_max - target_min) + target_min
+
+# Derivative of the sigmoid function 
+def sig_deriv(z):
+    a = 2
+    b = 1.5
+    sig = a / (1 + np.exp(-b*z))
+    return sig * (a - sig)
                     
 # Export matrix to csv
 def export_to_csv(location, matrix):
@@ -120,17 +135,18 @@ def prepare(partition="horizontal"):
         export_to_csv("data/goal.csv", [goal_pos[0], goal_pos[1]])
         export_to_csv("data/rewards.csv", rewards)
         export_to_csv("data/qtable.csv", q_table)   
-    elif partition == "vertical":
+    if partition == "vertical":
         export_to_csv("data/global-agent.csv", [initial_pos[0], initial_pos[1], initial_pos[0], initial_pos[1]])
         export_to_csv("data/global-goal.csv", [goal_pos[0], goal_pos[1]])
         export_to_csv("data/global-rewards.csv", rewards)
         export_to_csv("data/global-qtable.csv", q_table)
 
-def find_next_candidate(format):
-    qtable = matrix_from_csv("data/global-qtable-" + format + ".csv")
-    rewards = matrix_from_csv("data/global-rewards.csv")
-    global_goal = read_from_csv("data/global-goal.csv")
-    previous_candidate = read_from_csv("data/candidate-" + format + ".csv")
+# Find the next best candidate state to explore (Vertical Partitioning)
+def find_next_candidate(format):        
+    qtable          = matrix_from_csv("data/global-qtable-" + format + ".csv")
+    rewards         = matrix_from_csv("data/global-rewards.csv")
+    global_goal     = read_from_csv("data/global-goal.csv")
+    prev_candidate  = read_from_csv("data/candidate-" + format + ".csv")
     explored_states = []
 
     # Load explored states
@@ -140,31 +156,72 @@ def find_next_candidate(format):
             explored_states.append([int(val[0]), int(val[1])])
 
     # Add previous candidate to explored states
-    if previous_candidate and previous_candidate not in explored_states:
-        explored_states.append(previous_candidate)
+    if prev_candidate and prev_candidate not in explored_states:
+        explored_states.append(prev_candidate)
         with open("data/explored-states-" + format + ".csv", "a") as f:
-            f.write(str(previous_candidate[0]) + ";" + str(previous_candidate[1]) + "\n")
+            f.write(str(prev_candidate[0]) + ";" + str(prev_candidate[1]) + "\n")
         
     # Find next candidate state
     candidate = None
+    global_start = read_from_csv("data/global-agent.csv")
     if not explored_states:
         candidate = global_goal
     else:
-        best_val = -np.inf
-        for i in range(qtable.shape[0]):
-            for j in range(qtable.shape[1]):
-                if [i,j] not in explored_states:
-                    for k in range(qtable.shape[2]):
-                        if qtable[i,j,k] > best_val and rewards[i,j] != -10:
-                            candidate = [i,j]
-                            best_val = qtable[i,j,k]
+        candidate_list = []
+        for state in explored_states:
+            i, j = state
+            # Check the four states surrounding current explored state
+            if i-1 >= 0 and [i-1, j] not in explored_states and rewards[i-1, j] != -10:
+                candidate_list.append([(i-1, j), max(qtable[i-1, j])])
+            if i+1 < qtable.shape[0] and [i+1, j] not in explored_states and rewards[i+1, j] != -10:
+                candidate_list.append([(i+1, j), max(qtable[i+1, j])])
+            if j-1 >= 0 and [i, j-1] not in explored_states and rewards[i, j-1] != -10:
+                candidate_list.append([(i, j-1), max(qtable[i, j-1])])
+            if j+1 < qtable.shape[1] and [i, j+1] not in explored_states and rewards[i, j+1] != -10:
+                candidate_list.append([(i, j+1), max(qtable[i, j+1])])
+               
+            # Sort candidate list and keep top K candidates
+            candidate_list.sort(reverse = True, key = lambda x: x[1])
+            while len(candidate_list) > 5:
+                candidate_list.pop()
+        
+        # Start scoring candidates and select best one
+        best = 0
+        selected_candidate = None
+        val_min = min(candidate_list, key = lambda x: x[1])[1]
+        val_max = max(candidate_list, key = lambda x: x[1])[1]
+        dis_min = min(candidate_list, key = lambda x: man_distance(x[0], global_start))
+        dis_max = max(candidate_list, key = lambda x: man_distance(x[0], global_start))
+        dis_worst = sig_deriv(man_distance(dis_max[0], global_start)-1)
+        dis_best  = sig_deriv(man_distance(dis_min[0], global_start)-1)
+        for candidate in candidate_list:
+            if candidate == global_start:
+                selected_candidate = candidate
+                break
+            elif len(candidate_list) == 1:
+                selected_candidate = candidate_list[0]
+            else:
+                if val_min < val_max:
+                    norm_q_val = normalize_range(val_min, val_max, 0, 0.7, candidate[1])
+                else:
+                    norm_q_val = 0
+                if dis_worst < dis_best:
+                    norm_dist  = normalize_range(dis_worst, dis_best, 0, 0.3, sig_deriv(man_distance(candidate[0], global_start)-1))
+                else:
+                    norm_dist = 0
+                score = norm_q_val + norm_dist  
+                
+                if score > best:
+                    best = score
+                    selected_candidate = candidate
+                    
+        if best == 0:
+            selected_candidate = max(candidate_list, key = lambda x: x[1])
+            
+        candidate = selected_candidate[0]
     
     with open("data/candidate-" + format + ".csv", "w") as f:
         f.write(str(candidate[0]) + ";" + str(candidate[1]))
-        
-    print(format, candidate, qtable[candidate[0],candidate[1]])
-
-    update_inputs(epsilon=0.5)
 
 def extract_partition(size, format):
     # Load global parameters into memory
@@ -204,11 +261,9 @@ def extract_partition(size, format):
     local_goal = [candidate[0] - partition[0], candidate[1] - partition[1]]
     #rewards_partition[local_goal[0], local_goal[1]] = 100
     if candidate != global_goal:
-    	print(format, 'Candidate:', candidate, qtable[candidate[0], candidate[1]])
-    	rewards_partition[local_goal[0], local_goal[1]] = max(qtable[candidate[0], candidate[1]])
+        rewards_partition[local_goal[0], local_goal[1]] = max(qtable[candidate[0], candidate[1]])
     else:
-    	rewards_partition[local_goal[0], local_goal[1]] = 100
-    	print(format, 'Candidate:', candidate, qtable[candidate[0], candidate[1]], 100)
+        rewards_partition[local_goal[0], local_goal[1]] = 100
 
     export_to_csv("results/qtable-" + format + ".csv", qtable_partition)
     export_to_csv("data/rewards.csv", rewards_partition)

@@ -28,12 +28,17 @@ wss.on('connection', function connection(ws) {
     function run_model(args) {
         model_worker = spawn(`cd public/data; bash start-api.sh ${args}`, [], { shell: true, detached: true });
         model_worker.stdout.on('data', (data) => {
-            let completed_round = parseInt(data);
-            if (completed_round == 0) {
-                ws.send(JSON.stringify({status: "ready"}));
+            decoded_data = data.toString('utf8');
+            if (isNaN(parseInt(decoded_data))) {
+                console.log(decoded_data);
             } else {
-                ws.send(JSON.stringify({status: "completed_round", round: completed_round}));
-                counter_worker.send(JSON.stringify({command: "computed_rounds", computed_rounds: completed_round}));
+                let completed_round = parseInt(data);
+                if (completed_round == 0) {
+                    ws.send(JSON.stringify({status: "ready"}));
+                } else {
+                    ws.send(JSON.stringify({status: "completed_round", round: completed_round}));
+                    counter_worker.send(JSON.stringify({command: "computed_rounds", computed_rounds: completed_round}));
+                };
             };
         });
         model_worker.stderr.on('data', (data) => {
