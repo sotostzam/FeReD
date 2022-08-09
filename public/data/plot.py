@@ -188,10 +188,8 @@ def plot_tables(mode=None, round=None):
                 cmap=enhanced_cmap, cbar=False, annot=p_q_table_annot, fmt='')
     if mode == "experiment":
         plt.savefig("plots/experiment/policy_heatmap_python.png", bbox_inches = 'tight')
-    elif mode == "initialize":
-        plt.savefig("plots/round0/policy_heatmap_python.png", bbox_inches = 'tight')
-    else:
-        plt.savefig("plots/round" + str(round) + "/policy_heatmap_python.png", bbox_inches = 'tight')
+    if mode == "initialize":
+        plt.savefig("plots/round0/server_policy_heatmap_python.png", bbox_inches = 'tight')
     plt.clf()
 
     # Policy heatmap for SQLite
@@ -199,10 +197,8 @@ def plot_tables(mode=None, round=None):
                 cmap=enhanced_cmap, cbar=False, annot=s_q_table_annot, fmt='')
     if mode == "experiment":
         plt.savefig("plots/experiment/policy_heatmap_sql.png", bbox_inches = 'tight')
-    elif mode == "initialize":
-        plt.savefig("plots/round0/policy_heatmap_sql.png", bbox_inches = 'tight')
-    else:
-        plt.savefig("plots/round" + str(round) + "/policy_heatmap_sql.png", bbox_inches = 'tight')
+    if mode == "initialize":
+        plt.savefig("plots/round0/server_policy_heatmap_sql.png", bbox_inches = 'tight')
     
 def plot_fltimes(mode=None):
     if mode == "initialize":
@@ -331,7 +327,6 @@ def make_snapshot(format=None, round=None, mode=None, overall=False):
         fig.tight_layout()
         ax = sns.heatmap(q_table, linewidth=0.5, linecolor="black", clip_on=False,
                     cmap=enhanced_cmap, cbar=False, annot=q_table_annot, fmt='')
-
         plt.savefig("./plots/round" + str(round) + "/server_policy_heatmap_" + format + ".png",
                     bbox_inches = 'tight')
 

@@ -182,8 +182,8 @@ function checkButtons() {
 
 function updateFigures() {
     document.getElementById("current_round_span").innerHTML = `${current_round}`;
-    document.getElementById("heatmap_python").src    = plot_path + `/round${current_round}/policy_heatmap_python.png`;
-    document.getElementById("heatmap_sql").src       = plot_path + `/round${current_round}/policy_heatmap_sql.png`;
+    document.getElementById("heatmap_python").src    = plot_path + `/round${current_round}/server_policy_heatmap_python.png`;
+    document.getElementById("heatmap_sql").src       = plot_path + `/round${current_round}/server_policy_heatmap_sql.png`;
     document.getElementById("sync_times_python").src = plot_path + `/round${current_round}/sync_times_python.png`;
     document.getElementById("sync_times_sql").src    = plot_path + `/round${current_round}/sync_times_sql.png`;
     document.getElementById("convergence").src       = plot_path + `/round${current_round}/convergence.png`;

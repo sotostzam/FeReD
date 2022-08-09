@@ -238,6 +238,13 @@ img {
 	width: 80px;
 }
 
+.parameters-row input:disabled,
+.parameters-row select:disabled {
+	background-color: #1e2024;
+	color: grey;
+	opacity: 0.7;
+}
+
 .parameters-row label {
 	font-size: 15px;
 }

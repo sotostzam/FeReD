@@ -176,17 +176,17 @@
                                 <div class="code-coordinator">
                                     <div class="code-part code-title">Coordinator:</div>
                                     <div class="code-part">Initialize Q-table</div>
-                                    <div class="code-part"><b>for</b> each round <span id="pseudocode-round">t = 1 until T</span> <b>do</b><br>  <b>for</b> each client <span id="pseudocode-client">i = 1 until I</span> <b>do in parallel</b></div>
+                                    <div class="code-part"><b>for</b> each round <span id="pseudocode-round">t = 1 until T</span> <b>do</b><br>  <b>for</b> each client <span id="pseudocode-client">k = 1 until K</span> <b>do in parallel</b></div>
                                     <div class="code-part">    ClientUpdate()</div>
                                     <div class="code-part">  <b>end for</b></div>
                                     <div class="code-part code-clickable" onClick="window.open('code/aggregate.html', '_blank');">  Perform aggregation of results</div>
-                                    <div class="code-part">  reduce ε-greedy</div>
+                                    <div class="code-part">  Reduce ε-greedy</div>
                                     <div class="code-part"><b>end for</b></div>
                                 </div>
                                 <div class="code-client">
                                     <div class="code-part code-title">ClientUpdate:</div>
                                     <div class="code-part code-clickable" onClick="window.open('code/loops.html', '_blank');"><b>for</b> each episode <span id="pseudocode-episode">e = 1 until E</span> <b>do</b><br>  <b>for</b> local try <span id="pseudocode-tries">r = 1 until R</span><b> do</b></div>
-                                    <div class="code-part code-clickable" onClick="window.open('code/qlearning.html', '_blank');">    Run Q-learning algorithm</div>
+                                    <div class="code-part code-clickable" onClick="window.open('code/qlearning.html', '_blank');">    Run Q-learning update</div>
                                     <div class="code-part">  <b>end for</b></div>
                                     <div class="code-part"><b>end for</b></div>
                                     <div class="code-part"><b>return</b> results to coordinator</div>
