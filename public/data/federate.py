@@ -1,6 +1,6 @@
 import csv
 import os
-from utils import matrix_from_csv, export_to_csv, read_from_csv, man_distance, sig_deriv, normalize_range
+from utils import matrix_from_csv, export_to_csv, read_from_csv
         
 # Compute average federated table from clients
 def aggregate(format):
@@ -72,22 +72,8 @@ def aggregate_vertical(format):
                                 updates[(maze_pos_x, maze_pos_y, k)].append(client_qtable[i,j,k])
 
     # Average the updates
-    for pos, values in updates.items():
-        updates[pos] = sum(values) / len(values)
-
-    # Normalize parameters
-    target_min = 0
-    target_max = max(q_table[candidate[0], candidate[1]]) - 0.01 * max(q_table[candidate[0], candidate[1]])
-    if target_max == 0:
-        target_max = 100
-    update_min = min(updates.values())
-    update_max = max(updates.values())
-    
-    # Update weighted Q-values with distance and activation
-    for pos, values in updates.items():
-        new_val = normalize_range(update_min, update_max, target_min, target_max, values)
-        multiplier = sig_deriv(man_distance(pos, candidate) - 1)
-        q_table[pos[0],pos[1],pos[2]] = new_val * multiplier
+    for pos, values in updates.items():     
+        q_table[pos[0],pos[1],pos[2]] = sum(values) / len(values)
     
     # Update global federated model
     export_to_csv("data/global-qtable-" + format + ".csv", q_table)

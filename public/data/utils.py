@@ -9,15 +9,24 @@ import subprocess
 # Manhattan distance of two points
 def man_distance(point1, point2):
     return abs(point1[0] - point2[0]) + abs(point1[1] - point2[1])
+    
+def euclidean_distance(point1, point2):
+    return np.linalg.norm(np.array(point1)-np.array(point2))
+    
+def dist_similarity(point1, point2):
+    return sig_deriv(euclidean_distance(point1, point2))
 
 # Helper function to map one range to another        
 def normalize_range(current_min, current_max, target_min, target_max, value):
-    return ((value - current_min) / (current_max - current_min)) * (target_max - target_min) + target_min
+    if current_min < current_max:
+        return ((value - current_min) / (current_max - current_min)) * (target_max - target_min) + target_min
+    else:
+        return 0
 
 # Derivative of the sigmoid function 
 def sig_deriv(z):
     a = 2
-    b = 1.5
+    b = 0.3
     sig = a / (1 + np.exp(-b*z))
     return sig * (a - sig)
                     
@@ -185,38 +194,30 @@ def find_next_candidate(format):
             while len(candidate_list) > 5:
                 candidate_list.pop()
         
-        # Start scoring candidates and select best one
-        best = 0
+        # Start scoring candidates and select best one        
         selected_candidate = None
-        val_min = min(candidate_list, key = lambda x: x[1])[1]
-        val_max = max(candidate_list, key = lambda x: x[1])[1]
-        dis_min = min(candidate_list, key = lambda x: man_distance(x[0], global_start))
-        dis_max = max(candidate_list, key = lambda x: man_distance(x[0], global_start))
-        dis_worst = sig_deriv(man_distance(dis_max[0], global_start)-1)
-        dis_best  = sig_deriv(man_distance(dis_min[0], global_start)-1)
-        for candidate in candidate_list:
-            if candidate == global_start:
-                selected_candidate = candidate
-                break
-            elif len(candidate_list) == 1:
-                selected_candidate = candidate_list[0]
-            else:
-                if val_min < val_max:
-                    norm_q_val = normalize_range(val_min, val_max, 0, 0.7, candidate[1])
-                else:
-                    norm_q_val = 0
-                if dis_worst < dis_best:
-                    norm_dist  = normalize_range(dis_worst, dis_best, 0, 0.3, sig_deriv(man_distance(candidate[0], global_start)-1))
-                else:
-                    norm_dist = 0
-                score = norm_q_val + norm_dist  
+        if len(candidate_list) == 1:
+            selected_candidate = candidate_list[0]
+        else:
+            best = 0
+            val_min = min(candidate_list, key = lambda x: x[1])[1]
+            val_max = max(candidate_list, key = lambda x: x[1])[1]
+            dis_min = min(candidate_list, key = lambda x: euclidean_distance(x[0], global_start))
+            dis_max = max(candidate_list, key = lambda x: euclidean_distance(x[0], global_start))
+            dis_worst = sig_deriv(euclidean_distance(dis_max[0], global_start))
+            dis_best  = sig_deriv(euclidean_distance(dis_min[0], global_start))
+            
+            for candidate in candidate_list:
+                norm_q_val = normalize_range(val_min, val_max, 0, 0.5, candidate[1])
+                norm_dist = normalize_range(dis_worst, dis_best, 0, 0.5, dist_similarity(candidate[0], global_start))
+                score = norm_q_val + norm_dist
                 
                 if score > best:
                     best = score
                     selected_candidate = candidate
                     
-        if best == 0:
-            selected_candidate = max(candidate_list, key = lambda x: x[1])
+            if best == 0:
+                selected_candidate = candidate_list[0]
             
         candidate = selected_candidate[0]
     
@@ -253,17 +254,15 @@ def extract_partition(size, format):
         box_radius[3] = qtable.shape[1]
 
     # Create random partition
+    global_goal_val = rewards[global_goal[0], global_goal[1]]
     partition = [random.randint(box_radius[0], box_radius[1]-size), random.randint(box_radius[2], box_radius[3]-size)]
     qtable_partition = qtable[partition[0]:partition[0] + size, partition[1]:partition[1] + size]
     if candidate != global_goal:
         rewards[global_goal[0], global_goal[1]] = -1
     rewards_partition = rewards[partition[0]:partition[0] + size, partition[1]:partition[1] + size]
     local_goal = [candidate[0] - partition[0], candidate[1] - partition[1]]
-    #rewards_partition[local_goal[0], local_goal[1]] = 100
-    if candidate != global_goal:
-        rewards_partition[local_goal[0], local_goal[1]] = max(qtable[candidate[0], candidate[1]])
-    else:
-        rewards_partition[local_goal[0], local_goal[1]] = 100
+    rewards_partition[local_goal[0], local_goal[1]] = global_goal_val
+    qtable_partition[local_goal[0], local_goal[1]] = np.zeros(4)
 
     export_to_csv("results/qtable-" + format + ".csv", qtable_partition)
     export_to_csv("data/rewards.csv", rewards_partition)
