@@ -69,13 +69,14 @@ window.onload = function () {
         let val = document.getElementById("clients").value;
         let current_clients = document.getElementById("python_client1").length;
         if (current_clients < val) {
-            for (let i = current_clients; i <= val; i++) {
-                document.getElementById("python_client1").add(new Option(`#${i}`, 'i'));
-                document.getElementById("python_client2").add(new Option(`#${i}`, 'i'));
-                document.getElementById("python_client3").add(new Option(`#${i}`, 'i'));
-                document.getElementById("sql_client1").add(new Option(`#${i}`, 'i'));
-                document.getElementById("sql_client2").add(new Option(`#${i}`, 'i'));
-                document.getElementById("sql_client3").add(new Option(`#${i}`, 'i'));
+            console.log(current_clients, val);
+            for (let i = current_clients + 1; i <= val; i++) {
+                document.getElementById("python_client1").add(new Option(`#${i}`, `${i}`));
+                document.getElementById("python_client2").add(new Option(`#${i}`, `${i}`));
+                document.getElementById("python_client3").add(new Option(`#${i}`, `${i}`));
+                document.getElementById("sql_client1").add(new Option(`#${i}`, `${i}`));
+                document.getElementById("sql_client2").add(new Option(`#${i}`, `${i}`));
+                document.getElementById("sql_client3").add(new Option(`#${i}`, `${i}`));
             };
         } else {
             for (let i = current_clients; i >= val; i--) {
